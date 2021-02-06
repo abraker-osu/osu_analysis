@@ -3,14 +3,9 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
-from misc.numpy_utils import NumpyUtils
-from misc.geometry import get_distance
-from misc.math_utils import prob_not, prob_and, prob_or
-
-from osu.local.hitobject.std.std import Std
-from analysis.osu.std.map_data import StdMapData
-from analysis.osu.std.replay_data import StdReplayData
-from analysis.osu.std.replay_metrics import StdReplayMetrics
+from .map_data import StdMapData
+from .replay_data import StdReplayData
+from .replay_metrics import StdReplayMetrics
 
 import time
 
@@ -68,12 +63,12 @@ class StdScoreData():
     pos_rel_miss_range  = 1000  # ms point of late release window
     neg_rel_miss_range  = 1000  # ms point of early release window
 
-    neg_hld_range   = 50     # ms range of early hold
-    pos_hld_range   = 1000   # ms range of late hold
+    neg_hld_range   = 50    # ms range of early hold
+    pos_hld_range   = 1000  # ms range of late hold
 
-    dist_miss_range = 50   # ms range the cursor can deviate from aimpoint distance threshold before it's a miss
+    dist_miss_range = 50    # ms range the cursor can deviate from aimpoint distance threshold before it's a miss
 
-    hitobject_radius = Std.cs_to_px(4)  # Radius from hitobject for which cursor needs to be within for a tap to count
+    hitobject_radius = 36.5 # Radius from hitobject for which cursor needs to be within for a tap to count
     follow_radius    = 100  # Radius from slider aimpoint for which cursor needs to be within for a hold to count
     release_radius   = 100  # Radius from release aimpoint for which cursor needs to be within for a release to count
 
@@ -442,7 +437,9 @@ class StdScoreData():
 
 
     @staticmethod
-    def get_score_data(replay_data, map_data, ar=8, cs=4):
+    def get_score_data(replay_data, map_data, ar_ms=750, cs_px=36.5):
+        StdScoreData.hitobject_radius = cs_px
+
         # Score data that will be filled in and returned
         score_data = {}
 
@@ -476,8 +473,8 @@ class StdScoreData():
                 # have yet to be processed have been processed (in the case of replay skipping)
                 #earliest_visible_time = replay_time - StdScoreData.pos_hit_nothing_range
 
-                start_time = min(map_time, replay_time + Std.ar_to_ms(ar)) - 1
-                end_time   = max(map_time, replay_time + Std.ar_to_ms(ar))
+                start_time = min(map_time, replay_time + ar_ms) - 1
+                end_time   = max(map_time, replay_time + ar_ms)
 
                 # Get visible notes at current time
                 visible_notes = StdMapData.time_slice(map_data, start_time, end_time)

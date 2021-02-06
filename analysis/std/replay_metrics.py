@@ -1,10 +1,6 @@
 import numpy as np
 
-from misc.geometry import *
-from misc.numpy_utils import NumpyUtils
-
-from osu.local.beatmap.beatmap import Beatmap
-from analysis.osu.std.replay_data import StdReplayData
+from .replay_data import StdReplayData
 
 
 

@@ -3,9 +3,7 @@ import pandas as pd
 import math
 import itertools
 
-from osu.local.hitobject.hitobject import Hitobject
-from osu.local.hitobject.std.std import Std
-from misc.numpy_utils import NumpyUtils
+from osu_interfaces import IHitobject, IBeatmap
 
 
 
@@ -39,67 +37,8 @@ class StdMapData():
     IDX_TYPE   = 3
     IDX_OBJECT = 4
 
-    @staticmethod 
-    def std_hitobject_to_aimpoints(std_hitobject, min_press_duration=1):
-        """
-        .. warning::
-            This function is not intended to be used directly
-
-        Converts a ``Hitobject`` type into a numpy array equivalent that can 
-        be used by the analysis framework.
-
-        Parameters
-        ----------
-        std_hitobject : Hitobject
-            A hitobject to convert
-
-        Returns
-        -------
-        generator object
-            A list of scorepoints in the following format:
-            ::
-
-                [
-                    [ aimpoint_x, aimpoint_y, type ],
-                    [ aimpoint_x, aimpoint_y, type ],
-                    ... N aimpoints
-                ]
-
-            Hitcircles contain only one scorepoint. Sliders can contain
-            more than one. This format is reflected in the groups of 
-            [ time, pos ] in the map data
-        """
-        # Record data via dictionary to identify unique timings
-        aimpoint_data = []
-
-        # Hit circle recording
-        if std_hitobject.is_hitobject_type(Hitobject.CIRCLE):
-            # Extract note timings
-            note_start = std_hitobject.time
-            note_end   = std_hitobject.time
-
-            # Adjust note ending based on whether it is single or hold note (determined via min_press_duration)
-            note_end = note_end if (note_end - note_start >= min_press_duration) else (note_start + min_press_duration)
-
-            aimpoint_data.append(np.asarray([ note_start, std_hitobject.pos.x, std_hitobject.pos.y, StdMapData.TYPE_PRESS, StdMapData.TYPE_CIRCLE ]))
-            aimpoint_data.append(np.asarray([ note_end, std_hitobject.pos.x, std_hitobject.pos.y, StdMapData.TYPE_RELEASE, StdMapData.TYPE_CIRCLE ]))
-        
-        # Slider recording
-        elif std_hitobject.is_hitobject_type(Hitobject.SLIDER):
-            aimpoint_times = std_hitobject.get_aimpoint_times()
-
-            aimpoint_data.append(np.asarray([ aimpoint_times[0], std_hitobject.time_to_pos(aimpoint_times[0]).x, std_hitobject.time_to_pos(aimpoint_times[0]).y, StdMapData.TYPE_PRESS, StdMapData.TYPE_SLIDER ]))
-            if len(aimpoint_times) > 2:
-                for aimpoint_time in aimpoint_times[1:-1]:
-                    aimpoint_data.append(np.asarray([ aimpoint_time, std_hitobject.time_to_pos(aimpoint_time).x, std_hitobject.time_to_pos(aimpoint_time).y, StdMapData.TYPE_HOLD, StdMapData.TYPE_SLIDER ]))
-            aimpoint_data.append(np.asarray([ aimpoint_times[-1], std_hitobject.time_to_pos(aimpoint_times[-1]).x, std_hitobject.time_to_pos(aimpoint_times[-1]).y, StdMapData.TYPE_RELEASE, StdMapData.TYPE_SLIDER ]))
-
-        # Convert the dictionary of recorded timings and states into a pandas data
-        return pd.DataFrame(aimpoint_data, columns=['time', 'x', 'y', 'type', 'object'])
-
-
     @staticmethod
-    def get_map_data(std_hitobjects):
+    def get_map_data(beatmap):
         """
         .. note::
             This function is intended to be used directly
@@ -138,11 +77,77 @@ class StdMapData():
 
                 [109 rows x 3 columns]
         """
+        if not isinstance(beatmap, IBeatmap):
+            raise TypeError(f'Not beatmap object type: {type(beatmap)}')
+
         map_data = []
-        for hitobject in std_hitobjects:
-            map_data.append(StdMapData.std_hitobject_to_aimpoints(hitobject))
+
+        for hitobject in beatmap.get_hitobjects():
+            map_data.append(StdMapData.__std_hitobject_to_aimpoints(hitobject))
 
         return pd.concat(map_data, axis=0, keys=range(len(map_data)), names=[ 'hitobject', 'aimpoint' ])
+
+
+    @staticmethod 
+    def __std_hitobject_to_aimpoints(std_hitobject):
+        """
+        .. warning::
+            This function is not intended to be used directly
+
+        Converts a ``Hitobject`` type into a numpy array equivalent that can 
+        be used by the analysis framework.
+
+        Parameters
+        ----------
+        std_hitobject : Hitobject
+            A hitobject to convert
+
+        Returns
+        -------
+        generator object
+            A list of scorepoints in the following format:
+            ::
+
+                [
+                    [ aimpoint_x, aimpoint_y, type ],
+                    [ aimpoint_x, aimpoint_y, type ],
+                    ... N aimpoints
+                ]
+
+            Hitcircles contain only one scorepoint. Sliders can contain
+            more than one. This format is reflected in the groups of 
+            [ time, pos ] in the map data
+        """
+        if not isinstance(std_hitobject, IHitobject):
+            raise TypeError(f'Not hitobject type: {type(std_hitobject)}')        
+
+        # Record data via dictionary to identify unique timings
+        aimpoint_data = []
+
+        # Hit circle recording
+        if std_hitobject.is_htype(IHitobject.CIRCLE):
+            # Extract note timings
+            note_start = std_hitobject.start_time()
+            note_end   = std_hitobject.end_time()
+
+            # Adjust note ending based on whether it is single or hold note (make it span 1 second)
+            note_end = note_end if (note_end - note_start >= 1) else (note_start + 1)
+
+            aimpoint_data.append(np.asarray([ note_start, std_hitobject.pos_x(), std_hitobject.pos_y(), StdMapData.TYPE_PRESS, StdMapData.TYPE_CIRCLE ]))
+            aimpoint_data.append(np.asarray([ note_end, std_hitobject.pos_x(), std_hitobject.pos_y(), StdMapData.TYPE_RELEASE, StdMapData.TYPE_CIRCLE ]))
+        
+        # Slider recording
+        elif std_hitobject.is_htype(IHitobject.SLIDER):
+            tick_data = std_hitobject.tick_data()
+
+            aimpoint_data.append(np.asarray([ tick_data[0, 2], tick_data[0, 0], tick_data[0, 1], StdMapData.TYPE_PRESS, StdMapData.TYPE_SLIDER ]))
+            if len(tick_data) > 2:
+                for aimpoint_time in tick_data[1:-1, 2]:
+                    aimpoint_data.append(np.asarray([ aimpoint_time, std_hitobject.time_to_pos(aimpoint_time)[0], std_hitobject.time_to_pos(aimpoint_time)[1], StdMapData.TYPE_HOLD, StdMapData.TYPE_SLIDER ]))
+            aimpoint_data.append(np.asarray([ tick_data[-1, 2], tick_data[-1, 0], tick_data[-1, 1], StdMapData.TYPE_RELEASE, StdMapData.TYPE_SLIDER ]))
+
+        # Convert the dictionary of recorded timings and states into a pandas data
+        return pd.DataFrame(aimpoint_data, columns=['time', 'x', 'y', 'type', 'object'])
 
 
     @staticmethod

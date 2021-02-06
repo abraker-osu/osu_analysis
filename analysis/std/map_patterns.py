@@ -1,12 +1,8 @@
 import numpy as np
 
-from misc.geometry import *
-from misc.math_utils import *
-from misc.metrics import Metrics
 
-from osu.local.beatmap.beatmap import Beatmap
-
-from analysis.osu.std.map_data import StdMapData
+from ..metrics import Metrics
+from .map_data import StdMapData
 
 
 

@@ -1,11 +1,20 @@
 import unittest
 
-# Beatmap reading test
 from unit_tests.test_analysis import TestAnalysis
 from unit_tests.test_mania_action_data import TestManiaActionData
 from unit_tests.test_mania_score_data_press import TestManiaScoreDataPress
 from unit_tests.test_mania_score_data import TestManiaScoreData
 
+from unit_tests.test_std_map_data import TestStdMapData
+from unit_tests.test_std_map_metrics import TestStdMapMetrics
+from unit_tests.test_std_map_patterns import TestStdMapPatterns
+from unit_tests.test_std_replay_data import TestStdReplayData
+
+from unit_tests.test_std_score_data_free import TestStdScoreDataFree
+from unit_tests.test_std_score_data_hold import TestStdScoreDataHold
+from unit_tests.test_std_score_data_press import TestStdScoreDataPress
+from unit_tests.test_std_score_data_release import TestStdScoreDataRelease
+from unit_tests.test_std_score_data import TestStdScoreData
 
 # Override function so that stdout output is not polluted with 
 # the short descriptions it gets from commented out function 

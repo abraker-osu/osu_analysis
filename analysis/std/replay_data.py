@@ -3,10 +3,7 @@ import pandas as pd
 import itertools
 import time
 
-from osu.local.hitobject.hitobject import Hitobject
-from osu.local.hitobject.std.std import Std
-from misc.numpy_utils import NumpyUtils
-
+from osu_interfaces import IReplay
 
 
 class StdReplayData():
@@ -26,7 +23,7 @@ class StdReplayData():
     RELEASE = 3  # Finger must depart force to unpress key
 
     @staticmethod 
-    def get_replay_data(replay_events):
+    def get_replay_data(replay):
         """
         Gets replay data
 
@@ -48,10 +45,14 @@ class StdReplayData():
                     ...  N events
                 ]
         """
+        if not isinstance(replay, IReplay):
+            raise TypeError(f'Not replay object type: {type(replay)}')
+
         replay_data = {}
 
         # Previous state of whether finger is holding key down
         hold_state = np.asarray([ False for _ in range(5) ])
+        replay_time = 0
 
         m1_mask    = (1 << 0)
         m2_mask    = (1 << 1)
@@ -59,12 +60,13 @@ class StdReplayData():
         k2_mask    = (1 << 3)
         smoke_mask = (1 << 4)
 
-        for replay_event in replay_events:
-            k1_pressed    = ((replay_event.keys_pressed & k1_mask) > 0)
-            k2_pressed    = ((replay_event.keys_pressed & k2_mask) > 0) 
-            m1_pressed    = ((replay_event.keys_pressed & m1_mask) > 0)
-            m2_pressed    = ((replay_event.keys_pressed & m2_mask) > 0)
-            smoke_pressed = (replay_event.keys_pressed & smoke_mask) > 0
+        replay = zip(replay.get_time_data(), replay.get_xpos_data(), replay.get_ypos_data(), replay.get_press_data())
+        for d_time, xpos, ypos, key in replay:
+            k1_pressed    = (int(key) & k1_mask) > 0
+            k2_pressed    = (int(key) & k2_mask) > 0
+            m1_pressed    = (int(key) & m1_mask) > 0
+            m2_pressed    = (int(key) & m2_mask) > 0
+            smoke_pressed = (int(key) & smoke_mask) > 0
 
             is_key_hold = np.asarray([ m1_pressed, m2_pressed, k1_pressed, k2_pressed, smoke_pressed ])
 
@@ -73,11 +75,13 @@ class StdReplayData():
             data[ hold_state &  is_key_hold] = StdReplayData.HOLD
             data[ hold_state & ~is_key_hold] = StdReplayData.RELEASE
 
+            replay_time += d_time
+            
             # Handles autoplay key press & release occuring at same time
-            replay_time = replay_event.t
-            while replay_time in replay_data: replay_time +=1
+            t = replay_time
+            while t in replay_data: t +=1
 
-            replay_data[replay_time] = [ replay_time, replay_event.x, replay_event.y ] + list(data)
+            replay_data[t] = [ replay_time, xpos, ypos ] + list(data)
             hold_state = is_key_hold
 
         replay_data = list(replay_data.values())
