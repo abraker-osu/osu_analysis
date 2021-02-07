@@ -12,3 +12,6 @@ from .analysis.std.score_metrics import StdScoreMetrics
 from .analysis.mania.action_data import ManiaActionData
 from .analysis.mania.map_metrics import ManiaMapMetrics
 from .analysis.mania.score_data import ManiaScoreData
+
+from .beatmap_reader import BeatmapIO
+from .replay_reader import ReplayIO
