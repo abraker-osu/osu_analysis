@@ -2,11 +2,8 @@ from enum import Enum
 import numpy as np
 import scipy.stats
 
-from misc.numpy_utils import NumpyUtils
-from misc.geometry import get_distance
-from misc.math_utils import prob_not, prob_and, prob_or
-
-from analysis.osu.std.score_data import StdScoreData, StdScoreDataEnums
+from ..utils import prob_not, prob_and, prob_or
+from .score_data import StdScoreData, StdScoreDataEnums
 
 
 class StdScoreMetrics():
