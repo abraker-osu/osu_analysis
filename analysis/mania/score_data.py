@@ -64,7 +64,7 @@ class ManiaScoreData():
     blank_miss = False
 
     # If True, remove release miss window for sliders. This allows to hit sliders and release them whenever
-    lazy_sliders = True  # Release timings are currently not processed, TODO
+    lazy_sliders = False
 
     # There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all 
     # overlapped miss parts are processed for one key event. If False, each overlapped miss part is 
