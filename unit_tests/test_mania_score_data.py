@@ -31,6 +31,18 @@ class TestManiaScoreData(unittest.TestCase):
         score_data = ManiaScoreData.get_score_data(map_data, replay_data)
         self.assertTrue(all((score_data['replay_t'] - score_data['map_t']).values == 0))
 
+        # Check if the score processor went through and recorded all of the timings
+        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\Various Artists - I Like This Chart, LOL vol. 2 (Fullereneshift) [LENK64 - Crazy Slav Dancers (HD) (Marathon)].osu')
+        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\abraker - Various Artists - I Like This Chart, LOL vol. 2 [LENK64 - Crazy Slav Dancers (HD) (Marathon)] (2021-07-10) OsuMania.osr')
+
+        map_data = ManiaActionData.get_action_data(beatmap)
+        replay_data = ManiaActionData.get_action_data(replay)
+        score_data = ManiaScoreData.get_score_data(map_data, replay_data)
+
+        map_score_xor = np.setxor1d(score_data['map_t'].values, ManiaActionData.press_times(map_data))  # Hits that are not present in either
+        map_score_xor = np.intersect1d(map_score_xor, ManiaActionData.press_times(map_data))            # Hits that are present in map but not score
+        self.assertEqual(len(map_score_xor), 0, f'Timings mising: {map_score_xor}')
+
 
     def test_get_custom_score_data(self):
         # TODO: custom scoring parameters

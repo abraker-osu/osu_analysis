@@ -239,7 +239,11 @@ class ManiaScoreData():
                 # Condition check whether all player actions in the column have been processed
                 # It's possible that the player never pressed any keys, so this may hit more
                 # often than one may expect
-                if replay_idx >= num_replay_events: break
+                if replay_idx >= replay_idx_max:
+                    # Fill in any empty misses at the end of the map
+                    for _ in range(map_idx, map_idx_max):
+                        column_data[len(column_data)] = np.asarray([ replay_time, map_col[map_idx, IDX_TIME], ManiaScoreData.TYPE_EMPTY, None ])
+                    break
 
                 # Time at which press or release occurs
                 replay_time = replay_col.index[replay_idx]
