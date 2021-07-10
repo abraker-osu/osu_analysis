@@ -188,7 +188,6 @@ class ManiaScoreData():
                 is_single_note = ((map_times[map_idx] - map_times[map_idx - 1]) <= 1)
                 if not is_single_note and not ManiaScoreData.lazy_sliders:
                     column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISS, map_idx ])
-
                 return 1  # Advance to next note
 
             return 0  # Don't advance to next note
@@ -201,39 +200,59 @@ class ManiaScoreData():
     def get_score_data(map_data, replay_data):
         """
         [
-            [
-                [ offset, type, action_idx ],
-                [ offset, type, action_idx ],
-                ... N events in col 
-            ],
-            [
-                [ offset, type, action_idx ],
-                [ offset, type, action_idx ],
-                ... N events in col 
-            ],
-            ... N cols
-        ]
+            [ offset, col, type, action_idx ],
+            [ offset, col, type, action_idx ],
+            ...
         """
+        map_num_cols = ManiaActionData.num_keys(map_data)
+        replay_num_cols = ManiaActionData.num_keys(replay_data)
+
+        if map_num_cols != replay_num_cols:
+            raise ValueError(f'Number of columns between map and replay do not match; map columns: {map_num_cols}   replay columns: {replay_num_cols}')
+
         score_data = []
 
+        IDX_TIME = 0
+        IDX_TYPE = 1
+
         # Go through each column
-        for map_col_idx, replay_col_idx in zip(map_data, replay_data):
-            free_filter = map_data[map_col_idx] != ManiaActionData.FREE
+        for map_col_idx, replay_col_idx in zip(range(map_num_cols), range(replay_num_cols)):
+            map_col_filter = map_data[:, ManiaActionData.IDX_COL] == map_col_idx
+            replay_col_filter = replay_data[:, ManiaActionData.IDX_COL] == replay_col_idx
 
-            map_col    = map_data[map_col_idx][free_filter].values
-            map_times  = map_data.index[free_filter].values
-            replay_col = replay_data[replay_col_idx]
+            map_idx_max = map_data[map_col_filter].shape[0]
+            replay_idx_max = replay_data[replay_col_filter].shape[0]
 
-            column_data = {}
+            # Map column data
+            map_col = np.empty((map_idx_max*2, 2))
+            map_col[:map_idx_max, IDX_TIME] = map_data[map_col_filter][:, ManiaActionData.IDX_STIME]
+            map_col[map_idx_max:, IDX_TIME] = map_data[map_col_filter][:, ManiaActionData.IDX_ETIME]
+            map_col[:map_idx_max, IDX_TYPE] = ManiaActionData.PRESS
+            map_col[map_idx_max:, IDX_TYPE] = ManiaActionData.RELEASE
+
+            map_sort = map_col.argsort(axis=0)
+            map_col = map_col[map_sort[:, IDX_TIME]]
+
+            # Replay column data
+            replay_col = np.empty((replay_idx_max*2, 2))
+            replay_col[:replay_idx_max, IDX_TIME] = replay_data[replay_col_filter][:, ManiaActionData.IDX_STIME]
+            replay_col[replay_idx_max:, IDX_TIME] = replay_data[replay_col_filter][:, ManiaActionData.IDX_ETIME]
+            replay_col[:replay_idx_max, IDX_TYPE] = ManiaActionData.PRESS
+            replay_col[replay_idx_max:, IDX_TYPE] = ManiaActionData.RELEASE
+            
+            replay_sort = replay_col.argsort(axis=0)
+            replay_col = replay_col[replay_sort[:, IDX_TIME]]
+
+            map_idx    = 0
             replay_idx = 0
 
-            map_idx   = 0
-            map_time  = map_times[map_idx]
-            note_type = map_col[map_idx]
+            note_type = map_col[map_idx, IDX_TYPE]
+            column_data = {}
 
             # Number of things to loop through
-            num_replay_events = len(replay_data)
-            
+            replay_idx_max = replay_idx_max*2
+            map_idx_max = map_idx_max*2
+
             # Go through replay events
             while True:
                 # Condition check whether all player actions in the column have been processed
@@ -246,33 +265,30 @@ class ManiaScoreData():
                     break
 
                 # Time at which press or release occurs
-                replay_time = replay_col.index[replay_idx]
-                replay_key  = replay_col.iloc[replay_idx]
-
+                replay_time = replay_col[replay_idx, IDX_TIME]
+                replay_type = replay_col[replay_idx, IDX_TYPE]
+ 
                 # Go through map notes
                 while True:
                     # Check for any skipped notes (if replay has event gaps)
-                    adv = ManiaScoreData.__process_free(column_data, note_type, replay_time, map_times, map_idx)
+                    adv = ManiaScoreData.__process_free(column_data, note_type, replay_time, map_col[:, IDX_TIME], map_idx)
                     if adv == 0: break
-
+                    
                     map_idx += adv
-                    map_time = map_times[map_idx] if map_idx < len(map_col) else map_times[-1] + 1
-                    note_type = map_col[map_idx] if map_idx < len(map_col) else ManiaActionData.FREE
+                    note_type = map_col[map_idx, IDX_TYPE] if map_idx < map_idx_max else ManiaActionData.FREE
 
                 # If a press occurs at this time and we expect it
-                if replay_key == ManiaActionData.PRESS and note_type == ManiaActionData.PRESS:
-                    map_idx += ManiaScoreData.__process_press(column_data, replay_time, map_times, map_idx)
-                    map_time = map_times[map_idx] if map_idx < len(map_col) else map_times[-1] + 1
-                    note_type = map_col[map_idx] if map_idx < len(map_col) else ManiaActionData.FREE
+                if replay_type == ManiaActionData.PRESS and note_type == ManiaActionData.PRESS:
+                    map_idx += ManiaScoreData.__process_press(column_data, replay_time, map_col[:, IDX_TIME], map_idx)
+                    note_type = map_col[map_idx, IDX_TYPE] if map_idx < map_idx_max else ManiaActionData.FREE
 
                     replay_idx += 1
                     continue
 
                 # If a release occurs at this time and we expect it
-                if replay_key == ManiaActionData.RELEASE and note_type == ManiaActionData.RELEASE:
-                    map_idx += ManiaScoreData.__process_release(column_data, replay_time, map_times, map_idx)
-                    map_time = map_times[map_idx] if map_idx < len(map_col) else map_times[-1] + 1
-                    note_type = map_col[map_idx] if map_idx < len(map_col) else ManiaActionData.FREE
+                if replay_type == ManiaActionData.RELEASE and note_type == ManiaActionData.RELEASE:
+                    map_idx += ManiaScoreData.__process_release(column_data, replay_time, map_col[:, IDX_TIME], map_idx)
+                    note_type = map_col[map_idx, IDX_TYPE] if map_idx < map_idx_max else ManiaActionData.FREE
 
                     replay_idx += 1
                     continue                        

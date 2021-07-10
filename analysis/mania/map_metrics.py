@@ -36,17 +36,21 @@ class ManiaMapMetrics():
         """
         times, aps = [], []
 
-        if col != None:
-            action_data = action_data[col]
+        if type(col) != type(None):
+            action_data = action_data[action_data[:, ManiaActionData.IDX_COL] == col]
 
-        for timing in action_data.index:
-            actions_in_range = action_data.loc[timing - window_ms : timing]
-            num_actions = (actions_in_range == ManiaActionData.PRESS).to_numpy().sum()
+        aps = np.zeros((action_data.shape[0],))
+
+        for i in range(action_data.shape[0]):
+            timing = action_data[i, ManiaActionData.IDX_STIME]
+            start_times = action_data[:, ManiaActionData.IDX_STIME]
+
+            time_window_mask = (timing - window_ms <= start_times) & (start_times < timing)
+            num_actions = time_window_mask.sum()
             
-            times.append(timing)
-            aps.append(1000*num_actions/window_ms)
+            aps[i] = 1000*num_actions/window_ms
 
-        return np.asarray(times), np.asarray(aps)
+        return np.arange(action_data.shape[0]), aps
 
 
     @staticmethod
@@ -69,10 +73,10 @@ class ManiaMapMetrics():
             ``intervals`` are the timings difference between current and previous notes' starting times. 
             Resultant array size is ``len(hitobject_data) - 1``.
         """
-        press_timings = action_data.index[action_data[col] == ManiaActionData.PRESS]
-        if len(press_timings) < 2: return [], []
-    
-        return press_timings[1:].to_numpy(), np.diff(press_timings.to_numpy())
+        if type(col) != type(None):
+            action_data = action_data[action_data[:, ManiaActionData.IDX_COL] == col]
+
+        return np.arange(1, action_data.shape[0]), np.diff(action_data[:, ManiaActionData.IDX_STIME])
 
 
     @staticmethod
@@ -94,52 +98,29 @@ class ManiaMapMetrics():
         Tuple of ``(times, max_aps_per_col)``. ``times`` are timings corresponding to recorded actions per second. 
             ``max_aps_per_col`` are max actions per second at indicated time.
         """
-        times, aps = [], []
+        aps = np.zeros((action_data.shape[0],))
+        times = action_data[:, ManiaActionData.IDX_STIME]
 
         # iterate through timings
-        for timing in action_data.index:
-            aps_per_col = []
+        for i in range(action_data.shape[0]):
+            timing = action_data[i, ManiaActionData.IDX_STIME]
+            
+            max_col = int(max(action_data[:, ManiaActionData.IDX_COL]))
+            aps_per_col = np.zeros((max_col, ))
 
             # iterate through columns
-            for _, data in action_data.loc[timing - window_ms : timing].iteritems():
-                num_actions = (data == ManiaActionData.PRESS).to_numpy().sum()
-                aps_per_col.append(1000*num_actions/window_ms)
+            for col in range(max_col):
+                col_mask = action_data[:, ManiaActionData.IDX_COL] == col
+                start_times = action_data[col_mask][:, ManiaActionData.IDX_STIME]
+
+                time_window_mask = (timing - window_ms <= start_times) & (start_times < timing)
+                num_actions = time_window_mask.sum()
+
+                aps_per_col[col] = 1000*num_actions/window_ms
             
-            times.append(timing)
-            aps.append(max(aps_per_col))
+            aps[i] = max(aps_per_col)
 
-        return np.asarray(times), np.asarray(aps) 
-
-
-    @staticmethod
-    def filter_single_note_releases(action_data):
-        """
-        Removes releases associated with single notes by setting them to FREE
-
-        Parameters
-        ----------
-        action_data : numpy.array
-            Action data from ``ManiaActionData.get_action_data``
-
-        Returns
-        -------
-        numpy.array
-        filtered action_data
-        """
-        filtered_action_data = action_data.copy()
-
-        # Operate per column (because idk how to make numpy operate on all columns like this)
-        for col in range(ManiaActionData.num_keys(action_data)):
-            # For current column, get where PRESS and RELEASE occur
-            release_timings = action_data.index[action_data[col] == ManiaActionData.RELEASE]
-            press_timings   = action_data.index[action_data[col] == ManiaActionData.PRESS]
-
-            # For filtering out releases associated with single notes 
-            # (assumes single note press interval is 1 ms)
-            non_release = (release_timings - press_timings) <= 1
-            filtered_action_data.loc[release_timings[non_release]] = 0
-
-        return filtered_action_data
+        return times, aps
 
 
     @staticmethod
@@ -160,14 +141,42 @@ class ManiaMapMetrics():
         numpy.array
         action_data mask of actions detected
         """
-        press_mask = (action_data == ManiaActionData.PRESS).to_numpy()
+        ret = np.zeros((action_data.shape[0], ), dtype=bool)
 
-        press_mask_any = np.any(action_data == ManiaActionData.PRESS, 1)
-        hold_mask_any  = np.any(action_data == ManiaActionData.HOLD, 1)
-        press_and_hold = np.logical_and(press_mask_any, hold_mask_any)
+        # If there are no hold notes present, then the entire mask should be 0
+        hold_mask = (action_data[:, ManiaActionData.IDX_ETIME] - action_data[:, ManiaActionData.IDX_STIME]) > 1
+        if not np.any(hold_mask):
+            return ret
 
-        press_mask = np.expand_dims(press_and_hold, axis=1) * press_mask
-        return press_mask
+        # These indices will be uses as references as to where place data in ret
+        idx_ref = np.arange(action_data.shape[0])
+                
+        # Convenience vars
+        ts = action_data[:, ManiaActionData.IDX_STIME]  # Hold note start times
+        te = action_data[:, ManiaActionData.IDX_ETIME]  # Hold note end times
+        ky = action_data[:, ManiaActionData.IDX_COL]    # Hold note column
+
+        # Operate on data in chunks to limit memory usage when using meshgrid
+        for i in range(0, action_data.shape[0], 500):
+            # Get a chunk of data to operate on
+            idx_start = i
+            idx_end   = min(action_data.shape[0], i+1000)
+            idx = idx_ref[idx_start : idx_end]
+            
+            # Used to operate every note on every other note
+            a, b = np.meshgrid(idx, idx)
+            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=bool)
+
+            # Checks if note b's start time is between note a's start and end times 
+            data &= (ts[a] < ts[b]) & (ts[b] < te[a])
+
+            # Check if notes are neigboring and are not themselves
+            data &= np.abs(ky[a] - ky[b]) == 1
+
+            # Check if any of the notes satisfy these conditions
+            ret[idx] |= np.any(data, axis=1)
+        
+        return ret
 
 
     @staticmethod
@@ -188,14 +197,46 @@ class ManiaMapMetrics():
         numpy.array
         action_data mask of actions detected
         """
-        hold_mask = (action_data == ManiaActionData.HOLD).to_numpy()
+        ret = np.zeros((action_data.shape[0], ), dtype=bool)
 
-        release_mask_any = np.any(action_data == ManiaActionData.RELEASE, 1)
-        hold_mask_any    = np.any(action_data == ManiaActionData.HOLD, 1)
-        release_and_hold = np.logical_and(release_mask_any, hold_mask_any)
+        # If there are no hold notes present, then the entire mask should be 0
+        hold_mask = (action_data[:, ManiaActionData.IDX_ETIME] - action_data[:, ManiaActionData.IDX_STIME]) > 1
+        if not np.any(hold_mask):
+            return ret
 
-        hold_mask = np.expand_dims(release_and_hold, axis=1) * hold_mask
-        return hold_mask
+        # These indices will be uses as references as to where place data in ret
+        idx_ref = np.arange(action_data.shape[0])
+
+        # Filter out non holds
+        idx_ref = idx_ref[hold_mask]
+
+        # Convenience vars
+        ts = action_data[:, ManiaActionData.IDX_STIME]  # Hold note start times
+        te = action_data[:, ManiaActionData.IDX_ETIME]  # Hold note end times
+        ky = action_data[:, ManiaActionData.IDX_COL]    # Hold note column
+
+        # Operate on data in chunks to limit memory usage when using meshgrid
+        for i in range(0, action_data.shape[0], 500):
+            # Get a chunk of data to operate on
+            idx_start = i
+            idx_end   = min(action_data.shape[0], i+1000)
+            idx = idx_ref[idx_start : idx_end]
+
+            # Used to operate every note on every other note
+            a, b = np.meshgrid(idx, idx)
+            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=bool)
+
+            # Checks if note b's end time is between note a's start and end times 
+            data &= (ts[a] < te[b]) & (te[b] < te[a])
+
+            # Check if notes are neigboring and are not themselves
+            data &= np.abs(ky[a] - ky[b]) == 1
+
+            # Check if any of the notes satisfy these conditions
+            # 0 and 1 axis are or'd to capture matches from both notes
+            ret[idx] |= np.any(data, axis=0) | np.any(data, axis=1)
+
+        return ret
 
 
     @staticmethod
@@ -211,56 +252,121 @@ class ManiaMapMetrics():
         Returns
         -------
         numpy.array
-        action_data mask of actions detected
+        action_data An array consiting of 1 if note is hold note and 0 if note is single note
         """
-        hold_note_mask = action_data.copy()
-
-        # Operate per column (because idk how to make numpy operate on all columns like this)
-        for col in range(ManiaActionData.num_keys(action_data)):
-            # For current column, get where PRESS and RELEASE occur
-            release_timings = action_data.index[action_data[col] == ManiaActionData.RELEASE]
-            press_timings   = action_data.index[action_data[col] == ManiaActionData.PRESS]
-
-            # Filter out idx in where_release_timing and where_press_timing that are 1 or less ms apart
-            # (assumes single note press interval is 1 ms)
-            hold_note_start_mask = (release_timings - press_timings) > 1
-        
-            # Since we want to also include HOLD actions, let's assign 2 to PRESS and RELEASE actions associated
-            # with hold notes so everything else can later be easily filtered out.
-            hold_note_mask[col].loc[release_timings[hold_note_start_mask]] = 2
-            hold_note_mask[col].loc[press_timings[hold_note_start_mask]] = 2
-
-            # Filter out everthing else
-            hold_note_mask[col][hold_note_mask[col] != 2] = 0
-
-            # Set all the 2's to 1's
-            hold_note_mask[col][hold_note_mask[col] == 2] = 1
-
-        return hold_note_mask
+        return (action_data[:, ManiaActionData.IDX_ETIME] - action_data[:, ManiaActionData.IDX_STIME]) > 1
 
 
     @staticmethod
-    def data_to_press_durations(action_data):
+    def detect_simultaneous_notes(action_data):
         """
-        Takes action_data, and turns it into time intervals since last press.
-        For example,
-        ::
-            [138317.,      1.,      0.],
-            [138567.,      3.,      0.],
-            [138651.,      1.,      1.],
-            [138901.,      2.,      2.],
-            [138984.,      2.,      2.],
-            [139234.,      3.,      3.],
+        Masks hold notes; removes single notes from data.
 
-        becomes
-        ::
-            [138317.,      0.,      0.  ],
-            [138567.,      0.,      0.  ],
-            [138651.,      334.,    0.  ],
-            [138901.,      0.,      0.  ],
-            [138984.,      0.,      0.  ],
-            [139234.,      0.,      0.  ],
+        Parameters
+        ----------
+        action_data : numpy.array
+            Action data from ``ManiaActionData.get_action_data``
 
+        Returns
+        -------
+        numpy.array
+        action_data An array consiting of 1 if note is hold note and 0 if note is single note
+        """
+        ret = np.zeros((action_data.shape[0], ), dtype=bool)
+
+        # These indices will be uses as references as to where place data in ret
+        idx_ref = np.arange(action_data.shape[0])
+
+        # Convenience vars
+        ts = action_data[:, ManiaActionData.IDX_STIME]  # Hold note start times
+        te = action_data[:, ManiaActionData.IDX_ETIME]  # Hold note end times
+        ky = action_data[:, ManiaActionData.IDX_COL]    # Hold note column
+
+        # Operate on data in chunks to limit memory usage when using meshgrid
+        for i in range(0, action_data.shape[0], 500):
+            # Get a chunk of data to operate on
+            idx_start = i
+            idx_end   = min(action_data.shape[0], i+1000)
+            idx = idx_ref[idx_start : idx_end]
+
+            # Used to operate every note on every other note
+            a, b = np.meshgrid(idx, idx, sparse=True)
+            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=bool)
+
+            # Check if note A ends before or at when note B ends
+            data &= te[a] <= te[b]
+
+            # Check if note A start after or at when note B starts
+            data &= ts[a] >= ts[b]
+
+            # Check if notes A and B are on different columns
+            data &= ky[a] != ky[b]
+
+            # Check if any of the notes satisfy these conditions
+            ret[idx] |= np.any(data, axis=0) | np.any(data, axis=1)
+
+        return ret
+
+
+    @staticmethod
+    def hold_durations(action_data):
+        """
+        Durations the notes are pressed for
+
+        Parameters
+        ----------
+        action_data : numpy.array
+            Action data from ``ManiaActionData.get_action_data``
+
+        Returns
+        -------
+        numpy.array
+        action_data with hold note durations
+        """
+        return action_data[:, ManiaActionData.IDX_ETIME] - action_data[:, ManiaActionData.IDX_STIME]
+
+
+    @staticmethod
+    def anti_press_durations(action_data):
+        """
+        Takes action_data, and reduces them to durations of anti-presses. Anti-presses
+        are associated with points in LN type patterns where there is a spot between 
+        two holdnotes where the finger is released. 
+
+        Parameters
+        ----------
+        action_data : numpy.array
+            Action data from ``ManiaActionData.get_action_data``
+
+        Returns
+        -------
+        numpy.array
+        action_data with hold note durations
+        """
+        ret = np.empty(action_data.shape[0])
+        col_max = int(np.max(action_data[:, ManiaActionData.IDX_COL]))
+        idx_sort = ManiaActionData.get_idx_col_sort(action_data)
+
+        for c in range(col_max):
+            map_col_mask = action_data[:, ManiaActionData.IDX_COL] == c
+            map_col  = action_data[map_col_mask]
+            col_sort = idx_sort[idx_sort < map_col.shape[0]]
+
+            map_col = map_col[col_sort]
+
+            intervals = np.zeros(map_col.shape[0])
+            intervals[1:] = map_col[1:, ManiaActionData.IDX_STIME] - map_col[:-1, ManiaActionData.IDX_ETIME]
+
+            ret[map_col_mask] = intervals[col_sort]
+
+        return ret        
+
+
+    @staticmethod
+    def press_durations(action_data):
+        """
+        Time intervals since last press.
+        
         Parameters
         ----------
         action_data : numpy.array
@@ -271,156 +377,35 @@ class ManiaMapMetrics():
         numpy.array
         action_data with intervals between presses
         """
-        # Make a copy of the data and keep just the timings
-        press_intervals_data = action_data.copy()
-        press_intervals_data[:] = 0
-
-        # Operate per column (because idk how to make numpy operate on all columns like this)
-        for col in range(ManiaActionData.num_keys(action_data)):
-            # Get timings for PRESS
-            press_timings = action_data.index[action_data[col] == ManiaActionData.PRESS]
-
-            # This contains a list of press intervals. The locations of the press intervals are
-            # resolved via where_press_timing starting with the second press
-            press_intervals = press_timings[1:] - press_timings[:-1]
-
-            # Now fill in the blank data with press intervals
-            press_intervals_data[col].loc[press_timings[1:]] = press_intervals
+        cols_unique = np.unique(action_data[:, ManiaActionData.IDX_COL])
         
-        return press_intervals_data
+        ret_dur = np.zeros((action_data.shape[0] - cols_unique.shape[0], ))
+        ret_idx = np.zeros((action_data.shape[0] - cols_unique.shape[0], ))
 
+        idx = 0
 
-    @staticmethod
-    def data_to_hold_durations(action_data):
-        """
-        Takes action_data, filters out non hold notes, and reduces them to
-        durations they last for. For example,
-        ::
-            [138317.,      1.,      0.],
-            [138567.,      3.,      0.],
-            [138651.,      1.,      1.],
-            [138901.,      2.,      2.],
-            [138984.,      2.,      2.],
-            [139234.,      3.,      3.],
+        for col_idx in cols_unique:
+            map_col_filter = action_data[:, ManiaActionData.IDX_COL] == col_idx
+            map_col = action_data[map_col_filter]
 
-        becomes
-        ::
-            [138317.,      250.,    0.  ],
-            [138567.,      0.,      0.  ],
-            [138651.,      583.,    583.],
-            [138901.,      0.,      0.  ],
-            [138984.,      0.,      0.  ],
-            [139234.,      0.,      0.  ],
+            col_sort = map_col[:, ManiaActionData.IDX_STIME].argsort(axis=0)
+            map_col = map_col[col_sort]
+            
+            durations = map_col[1:, ManiaActionData.IDX_STIME] - map_col[:-1, ManiaActionData.IDX_STIME]
+            cols_sort_mask = col_sort < col_sort.shape[0] - 1  # Filter out last idx since durations omit last one
 
-        .. note:: This does not filter out single notes and 
-        will show process single note press/release times as well
+            ret_dur[idx : idx + durations.shape[0]] = durations
+            ret_idx[idx : idx + durations.shape[0]] = col_sort[cols_sort_mask] + idx
 
-        Parameters
-        ----------
-        action_data : numpy.array
-            Action data from ``ManiaActionData.get_action_data``
-
-        Returns
-        -------
-        numpy.array
-        action_data with hold note durations
-        """
-        # Make a copy of the data and keep just the timings
-        hold_note_duration_data = action_data.copy()
-        hold_note_duration_data[:] = 0
-
-        # Make another copy of the data to have just stuff related to hold notes
-        hold_note_mask = ManiaMapMetrics.detect_hold_notes(action_data)
-        hold_note_data = action_data.copy()
-
-        # Keep just the information associated with hold notes
-        hold_note_data[~hold_note_mask.astype(np.bool, copy=False)] = 0
-
-        # Operate per column (because idk how to make numpy operate on all columns like this)
-        for col in range(ManiaActionData.num_keys(action_data)):
-            # For current column, get where PRESS and RELEASE occur
-            press_timings = action_data.index[action_data[col] == ManiaActionData.PRESS]
-            release_timings = action_data.index[action_data[col] == ManiaActionData.RELEASE]
-
-            # This contains a list of hold note durations. The locations of the hold note durations are
-            # resolved via where_press_timing
-            hold_note_durations = release_timings - press_timings
-
-            # Now fill in the blank data with hold note durations
-            hold_note_duration_data[col].loc[release_timings] = hold_note_durations
+            idx += durations.shape[0]
         
-        return hold_note_duration_data
-
-
-    @staticmethod
-    def data_to_anti_press_durations(action_data):
-        """
-        Takes action_data, and reduces them to durations of anti-presses. Anti-presses
-        are associated with points in LN type patterns where there is a spot between 
-        two holdnotes where the finger is released. For example,
-        ::
-            [138317.,      1.,      0.],
-            [138567.,      3.,      0.],
-            [138651.,      1.,      1.],
-            [138901.,      2.,      2.],
-            [138984.,      2.,      2.],
-            [139234.,      3.,      3.],
-
-        becomes
-        ::
-            [138317.,      0.,      0.  ],
-            [138567.,      84.,     0.  ],
-            [138651.,      0.,      0.  ],
-            [138901.,      0.,      0.  ],
-            [138984.,      0.,      0.  ],
-            [139234.,      0.,      0.  ],
-
-        .. note:: This does not filter out single notes and 
-        will show process single note press/release times as well
-
-        Parameters
-        ----------
-        action_data : numpy.array
-            Action data from ``ManiaActionData.get_action_data``
-
-        Returns
-        -------
-        numpy.array
-        action_data with hold note durations
-        """
-        # Make a copy of the data and keep just the timings
-        anti_press_duration_data = action_data.copy()
-        anti_press_duration_data[:] = 0
-
-        # Make another copy of the data to have just stuff related to hold notes
-        hold_note_mask = ManiaMapMetrics.detect_hold_notes(action_data)
-        hold_note_data = action_data.copy()
-
-        # Keep just the information associated with hold notes
-        hold_note_data[~hold_note_mask.astype(np.bool, copy=False)] = 0
-
-        # Operate per column (because idk how to make numpy operate on all columns like this)
-        for col in range(ManiaActionData.num_keys(action_data)):
-            # Get timings for those PRESS and RELEASE. We drop the last release timing because
-            # There is no press after that, hence no anti-press. We drop the first press timing
-            # because there is no release before that, hence no anti-press
-            press_timings = action_data.index[action_data[col] == ManiaActionData.PRESS]
-            release_timings = action_data.index[action_data[col] == ManiaActionData.RELEASE]
-
-            # This contains a list of anti-press durations. The locations of the anti-press durations are
-            # resolved via where_release_timing
-            anti_press_durations = press_timings[1:] - release_timings[:-1]
-
-            # Now fill in the blank data with anti-press durations
-            anti_press_duration_data[col].loc[press_timings[1:]] = anti_press_durations
-        
-        return anti_press_duration_data
+        return ret_idx, ret_dur
 
 
     @staticmethod
     def detect_inverse(action_data):
         """
-        Masks notes that are detected as inverses
+        Masks notes that are detected as or part of inverse patterns
 
         Parameters
         ----------
@@ -430,34 +415,144 @@ class ManiaMapMetrics():
         Returns
         -------
         numpy.array
-        action_data mask of actions detected
+        mask_data mask of notes detected
         """
-        inverse_mask = action_data.copy()
-        inverse_mask[:] = 0
+        ret = np.zeros((action_data.shape[0], ), dtype=bool)
 
-        # Ratio of release to hold duration that qualifies as inverse
-        # For example 0.6 - Release duration needs to be 0.6*hold_duration to qualify as inverse
-        ratio_free_to_hold = 0.6
+        # Filter out non hold notes
+        hold_mask = (action_data[:, ManiaActionData.IDX_ETIME] - action_data[:, ManiaActionData.IDX_STIME]) > 1
+        if not np.any(hold_mask):
+            return ret
 
-        anti_press_durations = ManiaMapMetrics.data_to_anti_press_durations(action_data)
-        hold_press_durations = ManiaMapMetrics.data_to_hold_durations(action_data)
+        # Filter out notes where player doesn't need to press multiple notes
+        simul_mask = ManiaMapMetrics.detect_simultaneous_notes(action_data)
+        if not np.any(simul_mask):
+            return ret
 
-        # Go through each column on left hand
-        for col in range(ManiaActionData.num_keys(action_data)):
-            anti_press_durations_col = anti_press_durations[col].to_numpy()
-            hold_press_durations_col = hold_press_durations[col].to_numpy()
+        # These indices will be uses as references as to where place data in ret
+        idx_ref = np.arange(action_data.shape[0])
 
-            # For filtering out timings with FREE
-            is_anti_press = anti_press_durations_col != ManiaActionData.FREE
-            is_hold_press = hold_press_durations_col != ManiaActionData.FREE
+        # Convenience vars
+        ts = action_data[:, ManiaActionData.IDX_STIME]  # Hold note start times
+        te = action_data[:, ManiaActionData.IDX_ETIME]  # Hold note end times
+        ky = action_data[:, ManiaActionData.IDX_COL]    # Hold note column
 
-            # Compare release duration against hold durations of previous and next hold notes
-            free_ratio_prev_hold = anti_press_durations_col[is_anti_press] <= ratio_free_to_hold*hold_press_durations_col[is_hold_press][:-1]
-            free_ratio_next_hold = anti_press_durations_col[is_anti_press] <= ratio_free_to_hold*hold_press_durations_col[is_hold_press][1:]
-            is_inverse = np.logical_and(free_ratio_prev_hold, free_ratio_next_hold)
+        # Operate on data in chunks to limit memory usage when using meshgrid
+        # Each iteration processes a bit more than the chunk specified to have some
+        # overlap between chunks. This all combination of notes are actually processed.
+        # For example, if you take chunks (0 - 100) and (100 - 200), there could be notes
+        # that make up the desired pattern spread between indices 99, 100, and 101, but if
+        # there is no overlap, then 99 would never be processed together with 100 and 101.
+        chunk = 300               # 1 chunk = 300 notes = 300x300x300x4 bytes = ~103 Mb
+        chunk += int(chunk*0.5)   # + 50% overlap between chunks = ~348 Mb
 
-            # Resolve inverse location and assign
-            where_inverse = np.where(is_anti_press)[0][is_inverse]
-            inverse_mask[col].iloc[where_inverse] = 1
-       
-        return inverse_mask
+        full_data = np.ones((chunk, chunk, chunk), dtype=bool)
+
+        # Iterate though the chunks
+        for i in range(0, action_data.shape[0], chunk):
+            # Get a chunk of data to operate on
+            idx_start = i
+            idx_end   = min(action_data.shape[0], i+chunk)
+            idx = idx_ref[idx_start : idx_end]
+
+            # Prepare data
+            data = full_data[:idx.shape[0], :idx.shape[0], :idx.shape[0]]
+            data[:, :, :] = 1
+
+            # Used to operate every note on every other note
+            a, b, c = np.meshgrid(idx, idx, idx, sparse=True)
+            
+            # Checks if note B's end time is while note A is being held down
+            data &= (ts[a] < te[b]) & (te[b] < te[a])
+
+            # Checks if note C's start time is while note A is being held down
+            data &= (ts[a] < ts[c]) & (ts[c] < te[a])
+
+            # Checks if note B's end time is before note C's start time
+            data &= (te[b] < ts[c])
+
+            # Checks if note B is hold note
+            data &= (te[b] - ts[b]) > 16
+
+            # Checks if note C is hold note
+            data &= (te[c] - ts[c]) > 16
+
+            # Check if notes A and B are neigboring and are not themselves
+            data &= np.abs(ky[a] - ky[b]) == 1
+
+            # Check if notes A and C are neigboring and are not themselves
+            data &= np.abs(ky[a] - ky[c]) == 1
+
+            # Check if notes B and C are neigboring and on same column
+            data &= ky[b] == ky[c]
+
+            # Check if any of the notes satisfy these conditions
+            # (1, 2), (0, 1), and (0, 2) are or'd to capture all reflexive matches (matches from perspective of each of the 3 notes)
+            ret[idx] |= np.any(data, axis=(1, 2)) | np.any(data, axis=(0, 1)) | np.any(data, axis=(0, 2))
+
+        return ret
+
+
+    @staticmethod
+    def detect_chords(action_data):
+        """
+        Masks notes that are detected as or part of chord patterns
+
+        A chord must satisfy the following conditions:
+        * notes composing the chord must all occur at same time
+        * notes composing the chord must all occur at different columns
+        * if notes prior to the chord exist, one of those notes must jack with at least one of the notes the chord is composed of
+        * if notes later to the chord exist, one of those notes must jack with at least one of the notes the chord is composed of
+
+        The last 2 requirements prevent parts of alternating patterns, trills, and rolls from being detected as chords
+
+        Parameters
+        ----------
+        action_data : numpy.array
+            Action data from ``ManiaActionData.get_action_data``
+
+        Returns
+        -------
+        numpy.array
+        mask_data mask of notes detected
+        """
+        ret = np.zeros((action_data.shape[0], ), dtype=bool)
+
+        # Convenience vars
+        ts = action_data[:, ManiaActionData.IDX_STIME]  # note start times
+        te = action_data[:, ManiaActionData.IDX_ETIME]  # note end times
+        ky = action_data[:, ManiaActionData.IDX_COL]    # note column
+
+        for i in range(action_data.shape[0]):
+            # Find notes that occur at same time as current note
+            # but at different column (to prevent same note matching)
+            chord = (ts == ts[i]) & (ky != ky[i])
+
+            # If no notes occur at this time, continue
+            if not np.any(chord): continue
+
+            # Column data for notes composing the chord 
+            # (excluding current note), rotated 90 deg for broadcasting
+            key_chord = ky[chord].reshape((ky[chord].shape[0], 1))
+    
+            # If applicable, find closest preceding notes
+            closest_prv = ts[ts[i] > ts]
+            if closest_prv.shape[0] != 0:
+                closest_prv = (ts == closest_prv[-1])
+
+                # One of prev notes must jack with one of the notes the chord consists of
+                if np.all(ky[closest_prv] != ky[i]) and np.all(ky[closest_prv] != key_chord): 
+                    continue
+
+            # If applicable, find closest leading notes
+            closest_nxt = ts[ts[i] < ts]
+            if closest_nxt.shape[0] != 0:
+                closest_nxt = (ts == closest_nxt[0])
+
+                # One of next notes must jack with one of the notes the chord consists of
+                if np.all(ky[closest_nxt] != ky[i]) and np.all(ky[closest_nxt] != key_chord): 
+                    continue
+            
+            ret[i] = 1
+
+        return ret

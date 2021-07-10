@@ -1,5 +1,5 @@
 import unittest
-import pandas as pd
+import numpy as np
 
 from analysis.mania.action_data import ManiaActionData
 from analysis.mania.score_data import ManiaScoreData
@@ -10,32 +10,32 @@ class TestManiaScoreDataPress(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        action_data = {
-             50 : [ 0, 0, 0, 1 ],
-             51 : [ 0, 0, 0, 3 ],
-            100 : [ 0, 0, 0, 1 ],
-            101 : [ 0, 0, 0, 3 ],
-            150 : [ 0, 0, 0, 1 ],
-            200 : [ 0, 0, 0, 2 ],
-            250 : [ 0, 0, 0, 3 ],
-            300 : [ 1, 0, 0, 1 ],
-            301 : [ 3, 0, 0, 2 ],
-            350 : [ 0, 0, 0, 3 ],
-            400 : [ 0, 0, 0, 0 ],
-            450 : [ 1, 1, 1, 1 ],
-            451 : [ 3, 2, 3, 3 ],
-            500 : [ 0, 3, 0, 0 ],
-        }
+        map_data = np.asarray([
+            [ 50,   51, 3 ],
+            [ 100, 101, 3 ],
+            [ 150, 250, 3 ],
+            [ 300, 301, 0 ],
+            [ 300, 350, 3 ],
+            [ 450, 451, 0 ],
+            [ 450, 500, 1 ],
+            [ 450, 451, 2 ],
+            [ 450, 451, 3 ]
+        ])
+
+        map_col_filter = map_data[:, ManiaActionData.IDX_COL] == 3
+        map_idx_max = map_data[map_col_filter].shape[0]
+
+        map_col = np.empty((map_idx_max*2, 2))
+        map_col[:map_idx_max, 0] = map_data[map_col_filter][:, ManiaActionData.IDX_STIME]
+        map_col[map_idx_max:, 0] = map_data[map_col_filter][:, ManiaActionData.IDX_ETIME]
+        map_col[:map_idx_max, 1] = ManiaActionData.PRESS
+        map_col[map_idx_max:, 1] = ManiaActionData.RELEASE
         
-        # Sort data by timings
-        action_data = dict(sorted(action_data.items()))
+        map_sort = map_col.argsort(axis=0)
+        map_col = map_col[map_sort[:, 0]]
 
-        # Convert the dictionary of recorded timings and states into a pandas data
-        cls.map_data = pd.DataFrame.from_dict(action_data, orient='index')
-        cls.map_data.index.name = 'time'
-
-        cls.map_col = cls.map_data[3][cls.map_data[3] != ManiaActionData.FREE].values
-        cls.map_times = cls.map_data.index[cls.map_data[3] != ManiaActionData.FREE].values
+        cls.map_times = map_col[:, 0]
+        cls.map_types = map_col[:, 1]
 
         # Set hitwindow ranges to what these tests have been written for
         ManiaScoreData.pos_hit_range       = 100  # ms point of late hit window
@@ -61,7 +61,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
         ManiaScoreData.lazy_sliders = False
 
         map_idx = 0
-        scorepoint_type = self.map_col[map_idx]
+        scorepoint_type = self.map_types[map_idx]
 
         self.assertEqual(scorepoint_type, ManiaActionData.PRESS)
 
@@ -91,7 +91,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
         ManiaScoreData.lazy_sliders = False
         
         map_idx = 0
-        scorepoint_type = self.map_col[map_idx]
+        scorepoint_type = self.map_types[map_idx]
 
         self.assertEqual(scorepoint_type, ManiaActionData.PRESS)
 
@@ -149,7 +149,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
         ManiaScoreData.lazy_sliders = False
 
         map_idx = 1
-        scorepoint_type = self.map_col[map_idx]
+        scorepoint_type = self.map_types[map_idx]
 
         self.assertEqual(scorepoint_type, ManiaActionData.RELEASE)
 
@@ -173,7 +173,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
         ManiaScoreData.lazy_sliders = False
 
         map_idx = 1
-        scorepoint_type = self.map_col[map_idx]
+        scorepoint_type = self.map_types[map_idx]
 
         self.assertEqual(scorepoint_type, ManiaActionData.RELEASE)
 
@@ -193,7 +193,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
         ManiaScoreData.lazy_sliders = False
 
         map_idx = 4
-        scorepoint_type = self.map_col[map_idx]
+        scorepoint_type = self.map_types[map_idx]
 
         self.assertEqual(scorepoint_type, ManiaActionData.PRESS)
 
@@ -223,7 +223,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
         ManiaScoreData.lazy_sliders = False
         
         map_idx = 4
-        scorepoint_type = self.map_col[map_idx]
+        scorepoint_type = self.map_types[map_idx]
 
         self.assertEqual(scorepoint_type, ManiaActionData.PRESS)
 
@@ -280,8 +280,8 @@ class TestManiaScoreDataPress(unittest.TestCase):
         ManiaScoreData.blank_miss = False
         ManiaScoreData.lazy_sliders = False
         
-        map_idx = 6
-        scorepoint_type = self.map_col[map_idx]
+        map_idx = 5
+        scorepoint_type = self.map_types[map_idx]
 
         self.assertEqual(scorepoint_type, ManiaActionData.RELEASE)
 
@@ -338,8 +338,8 @@ class TestManiaScoreDataPress(unittest.TestCase):
         ManiaScoreData.blank_miss = False
         ManiaScoreData.lazy_sliders = True
         
-        map_idx = 6
-        scorepoint_type = self.map_col[map_idx]
+        map_idx = 5
+        scorepoint_type = self.map_types[map_idx]
 
         self.assertEqual(scorepoint_type, ManiaActionData.RELEASE)
 

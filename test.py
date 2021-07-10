@@ -1,7 +1,11 @@
 import unittest
+import numpy as np
+
+np.set_printoptions(suppress=True)
 
 from unit_tests.test_analysis import TestAnalysis
 from unit_tests.test_mania_action_data import TestManiaActionData
+from unit_tests.test_mania_metric_data import TestManiaMetricData
 from unit_tests.test_mania_score_data_press import TestManiaScoreDataPress
 from unit_tests.test_mania_score_data import TestManiaScoreData
 
