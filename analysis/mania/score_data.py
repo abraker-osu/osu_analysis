@@ -261,7 +261,7 @@ class ManiaScoreData():
                 if replay_idx >= replay_idx_max:
                     # Fill in any empty misses at the end of the map
                     for _ in range(map_idx, map_idx_max):
-                        column_data[len(column_data)] = np.asarray([ replay_time, map_col[map_idx, IDX_TIME], ManiaScoreData.TYPE_EMPTY, None ])
+                        column_data[len(column_data)] = np.asarray([ replay_time, map_col[map_idx, IDX_TIME], ManiaScoreData.TYPE_MISS, None ])
                     break
 
                 # Time at which press or release occurs
@@ -273,7 +273,7 @@ class ManiaScoreData():
                     # Check for any skipped notes (if replay has event gaps)
                     adv = ManiaScoreData.__process_free(column_data, note_type, replay_time, map_col[:, IDX_TIME], map_idx)
                     if adv == 0: break
-                    
+
                     map_idx += adv
                     note_type = map_col[map_idx, IDX_TYPE] if map_idx < map_idx_max else ManiaActionData.FREE
 
