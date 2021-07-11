@@ -259,14 +259,17 @@ class ManiaScoreData():
                 # It's possible that the player never pressed any keys, so this may hit more
                 # often than one may expect
                 if replay_idx >= replay_idx_max:
-                    # Fill in any empty misses at the end of the map
-                    for _ in range(map_idx, map_idx_max):
-                        column_data[len(column_data)] = np.asarray([ replay_time, map_col[map_idx, IDX_TIME], ManiaScoreData.TYPE_MISS, None ])
-                    break
+                    # If reached end of replay, processes remaining notes as replay is at end of map
+                    replay_time = replay_col[-1, IDX_TIME] + ManiaScoreData.pos_hit_miss_range
+                    replay_type = ManiaActionData.FREE
+                else:
+                    # Time at which press or release occurs
+                    replay_time = replay_col[replay_idx, IDX_TIME]
+                    replay_type = replay_col[replay_idx, IDX_TYPE]
 
-                # Time at which press or release occurs
-                replay_time = replay_col[replay_idx, IDX_TIME]
-                replay_type = replay_col[replay_idx, IDX_TYPE]
+                # Not done until all notes and replay events were processed
+                if (map_idx >= map_idx_max) and (replay_idx >= replay_idx_max):
+                    break
  
                 # Go through map notes
                 while True:
