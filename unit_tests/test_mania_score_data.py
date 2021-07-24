@@ -20,8 +20,8 @@ class TestManiaScoreData(unittest.TestCase):
     def tearDown(cls):  
         pass
 
-
-    def test_get_score_data(self):
+    
+    def test_perfect_score(self):
         beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
         replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
 
@@ -38,6 +38,8 @@ class TestManiaScoreData(unittest.TestCase):
         offsets = (score_data['replay_t'] - score_data['map_t']).values
         self.assertEqual(len(offsets[~((offsets == 0) | (offsets == -1))]), 0)
 
+
+    def test_scoring_completeness(self):
         # Check if the score processor went through and recorded all of the timings
         beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\Various Artists - I Like This Chart, LOL vol. 2 (Fullereneshift) [LENK64 - Crazy Slav Dancers (HD) (Marathon)].osu')
         replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\abraker - Various Artists - I Like This Chart, LOL vol. 2 [LENK64 - Crazy Slav Dancers (HD) (Marathon)] (2021-07-10) OsuMania.osr')
@@ -49,6 +51,24 @@ class TestManiaScoreData(unittest.TestCase):
         map_score_xor = np.setxor1d(score_data['map_t'].values, ManiaActionData.press_times(map_data))  # Hits that are not present in either
         map_score_xor = np.intersect1d(map_score_xor, ManiaActionData.press_times(map_data))            # Hits that are present in map but not score
         self.assertEqual(len(map_score_xor), 0, f'Timings mising: {map_score_xor}')
+
+    def test_scoring_integrity(self):
+        # The number of hits + misses should match for all same maps
+        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\Goreshit - Satori De Pon! (SReisen) [Star Burst 2!].osu')
+        replay1 = ReplayIO.open_replay('unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr')
+        replay2 = ReplayIO.open_replay('unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr')
+
+        map_data = ManiaActionData.get_action_data(beatmap)
+        score_data1 = ManiaScoreData.get_score_data(map_data, ManiaActionData.get_action_data(replay1))
+        score_data2 = ManiaScoreData.get_score_data(map_data, ManiaActionData.get_action_data(replay2))
+
+        num_hits1 = score_data1['type'].values[score_data1['type'].values == ManiaScoreData.TYPE_HITP].shape[0]
+        num_miss1 = score_data1['type'].values[score_data1['type'].values == ManiaScoreData.TYPE_MISS].shape[0]
+
+        num_hits2 = score_data2['type'].values[score_data2['type'].values == ManiaScoreData.TYPE_HITP].shape[0]
+        num_miss2 = score_data2['type'].values[score_data2['type'].values == ManiaScoreData.TYPE_MISS].shape[0]
+
+        self.assertEqual(num_hits1 + num_miss1, num_hits2 + num_miss2, f'One of two maps have missing scoring points')
 
 
     def test_get_custom_score_data(self):

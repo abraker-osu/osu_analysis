@@ -40,15 +40,15 @@ class ManiaScoreData():
     DATA_TYPE    = 1
     DATA_MAP_IDX = 2
 
-    pos_hit_range       = 100  # ms point of the late hit window
-    neg_hit_range       = 100  # ms point of the early hit window
-    pos_hit_miss_range  = 200  # ms point of the late miss window
-    neg_hit_miss_range  = 200  # ms point of the early miss window
+    pos_hit_range       = 100  # ms point of the far end late hit window
+    neg_hit_range       = 100  # ms point of the far end early hit window
+    pos_hit_miss_range  = 200  # ms point of the far end late miss window
+    neg_hit_miss_range  = 200  # ms point of the far end early miss window
 
-    pos_rel_range       = 300  # ms point of the late release window
-    neg_rel_range       = 300  # ms point of the early release window
-    pos_rel_miss_range  = 500  # ms point of the late release window
-    neg_rel_miss_range  = 500  # ms point of the early release window
+    pos_rel_range       = 300  # ms point of the far end late release window
+    neg_rel_range       = 300  # ms point of the far end early release window
+    pos_rel_miss_range  = 500  # ms point of the far end late release window
+    neg_rel_miss_range  = 500  # ms point of the far end early release window
 
     # Disables hitting next note too early. If False, the neg_miss_range of the current note is 
     # overridden to extend to the previous note's pos_hit_range boundary.
@@ -174,6 +174,9 @@ class ManiaScoreData():
 
         time_offset = replay_time - map_times[map_idx]
 
+        if note_type == ManiaActionData.FREE:
+            return 1  # Advance to next note
+
         if note_type == ManiaActionData.PRESS:
             is_in_pos_nothing_range = ManiaScoreData.pos_hit_miss_range < time_offset
             if is_in_pos_nothing_range:
@@ -270,7 +273,7 @@ class ManiaScoreData():
                 # Not done until all notes and replay events were processed
                 if (map_idx >= map_idx_max) and (replay_idx >= replay_idx_max):
                     break
- 
+
                 # Go through map notes
                 while True:
                     # Check for any skipped notes (if replay has event gaps)
@@ -296,8 +299,12 @@ class ManiaScoreData():
                     replay_idx += 1
                     continue                        
 
-                # If we are here then it's a HOLD or FREE. Ignore.
+                # If we are here then it's a HOLD or FREE. If we are at end of the replay, 
+                # go through the rest of the notes. Otherwise ignore.
                 replay_idx += 1
+                if replay_idx > replay_idx_max:
+                    map_idx += 1
+                    
                 continue
 
             # Sort data by timings
