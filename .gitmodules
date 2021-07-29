@@ -1,10 +1,10 @@
 [submodule "analysis/osu_interfaces"]
 	path = osu_interfaces
-	url = git@github.com:abraker-osu/osu_interfaces.git
+	url = https://github.com/abraker-osu/osu_interfaces.git
 [submodule "replay_reader"]
 	path = replay_reader
-	url = git@github.com:abraker95/osu_replay_reader.git
+	url = https://github.com/abraker-osu/osu_replay_reader.git
 	branch = master
 [submodule "beatmap_reader"]
 	path = beatmap_reader
-	url = git@github.com:abraker-osu/osu_beatmap_reader.git
+	url = https://github.com/abraker-osu/osu_beatmap_reader.git
