@@ -263,7 +263,7 @@ class ManiaScoreData():
                 # often than one may expect
                 if replay_idx >= replay_idx_max:
                     # If reached end of replay, processes remaining notes as replay is at end of map
-                    replay_time = replay_col[-1, IDX_TIME] + ManiaScoreData.pos_hit_miss_range
+                    replay_time = map_col[-1, IDX_TIME] + ManiaScoreData.pos_hit_miss_range
                     replay_type = ManiaActionData.FREE
                 else:
                     # Time at which press or release occurs
