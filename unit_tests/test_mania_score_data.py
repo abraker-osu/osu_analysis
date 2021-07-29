@@ -52,6 +52,7 @@ class TestManiaScoreData(unittest.TestCase):
         map_score_xor = np.intersect1d(map_score_xor, ManiaActionData.press_times(map_data))            # Hits that are present in map but not score
         self.assertEqual(len(map_score_xor), 0, f'Timings mising: {map_score_xor}')
 
+
     def test_scoring_integrity(self):
         # The number of hits + misses should match for all same maps
         beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\Goreshit - Satori De Pon! (SReisen) [Star Burst 2!].osu')
@@ -62,13 +63,38 @@ class TestManiaScoreData(unittest.TestCase):
         score_data1 = ManiaScoreData.get_score_data(map_data, ManiaActionData.get_action_data(replay1))
         score_data2 = ManiaScoreData.get_score_data(map_data, ManiaActionData.get_action_data(replay2))
 
-        num_hits1 = score_data1['type'].values[score_data1['type'].values == ManiaScoreData.TYPE_HITP].shape[0]
-        num_miss1 = score_data1['type'].values[score_data1['type'].values == ManiaScoreData.TYPE_MISS].shape[0]
+        for c in range(score_data1.shape[1]):
+            score_col1 = score_data1.loc[c]
+            score_col2 = score_data2.loc[c]
 
-        num_hits2 = score_data2['type'].values[score_data2['type'].values == ManiaScoreData.TYPE_HITP].shape[0]
-        num_miss2 = score_data2['type'].values[score_data2['type'].values == ManiaScoreData.TYPE_MISS].shape[0]
+            num_hits1 = score_col1['type'].values[score_col1['type'].values == ManiaScoreData.TYPE_HITP].shape[0]
+            num_miss1 = score_col1['type'].values[score_col1['type'].values == ManiaScoreData.TYPE_MISS].shape[0]
 
-        self.assertEqual(num_hits1 + num_miss1, num_hits2 + num_miss2, f'One of two maps have missing scoring points')
+            num_hits2 = score_col2['type'].values[score_col2['type'].values == ManiaScoreData.TYPE_HITP].shape[0]
+            num_miss2 = score_col2['type'].values[score_col2['type'].values == ManiaScoreData.TYPE_MISS].shape[0]
+
+            hitp_t1 = score_col1['map_t'].values[score_col1['type'].values == ManiaScoreData.TYPE_HITP]
+            miss_t1 = score_col1['map_t'].values[score_col1['type'].values == ManiaScoreData.TYPE_MISS]
+            notes_t1 = np.concatenate((hitp_t1, miss_t1), axis=None).astype(int)  # All note timings in score 1
+            notes_t1 = np.sort(notes_t1)
+
+            hitp_t2 = score_col2['map_t'].values[score_col2['type'].values == ManiaScoreData.TYPE_HITP]
+            miss_t2 = score_col2['map_t'].values[score_col2['type'].values == ManiaScoreData.TYPE_MISS]
+            notes_t2 = np.concatenate((hitp_t2, miss_t2), axis=None).astype(int)  # All note timings in score 2
+            notes_t2 = np.sort(notes_t2)
+
+            notes_count1 = np.zeros(max(np.max(notes_t1), np.max(notes_t2)) + 1)
+            notes_count2 = np.zeros(max(np.max(notes_t1), np.max(notes_t2)) + 1)
+
+            notes_count1[:np.max(notes_t1)+1] = np.bincount(notes_t1)  # Integer histogram for timings of score 1
+            notes_count2[:np.max(notes_t2)+1] = np.bincount(notes_t2)  # Integer histogram for timings of score 2
+            notes_mismatch = np.arange(max(np.max(notes_t1), np.max(notes_t2)) + 1)[notes_count1 != notes_count2]
+
+            self.assertEqual(num_hits1 + num_miss1, num_hits2 + num_miss2, 
+                f'One of two maps have missing or extra scoring points at column {c}\n'
+                f'Score 1 hits & misses: {num_hits1} + {num_miss1} = {num_hits1 + num_miss1}    score 2 hits & misses: {num_hits2} + {num_miss2} = {num_hits2 + num_miss2}\n'
+                f'Note timings mismatched: {notes_mismatch}   score 1 occurences: {notes_count1[notes_count1 != notes_count2]}    score 2 occurences: {notes_count2[notes_count1 != notes_count2]}\n'
+            )
 
 
     def test_get_custom_score_data(self):
