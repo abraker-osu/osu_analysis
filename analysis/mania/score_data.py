@@ -22,13 +22,14 @@ class ManiaScoreDataEnums(Enum):
 
 class ManiaScoreData():
 
-    __ADV_NOP  = 0  # Used internal by scoring processor; Don't advance
+    __ADV_NOP = 0  # Used internal by scoring processor; Don't advance
     __ADV_MAP = 1  # Used internal by scoring processor; Advance timing
 
     TYPE_HITP  = 0  # A hit press has a hitobject and offset associated with it
     TYPE_HITR  = 1  # A hit release has a hitobject and offset associated with it
-    TYPE_MISS  = 2  # A miss has a hitobject associated with it, but not offset
+    TYPE_MISSP = 2  # A press miss has a hitobject associated with it, but not offset
     TYPE_EMPTY = 3  # An empty has neither hitobject nor offset associated with it
+    TYPE_MISSR = 4  # A release miss has a hitobject associated with it, but not offset
 
     IDX_REPLAY_T = 0
     IDX_MAP_T    = 1
@@ -92,7 +93,9 @@ class ManiaScoreData():
         # Early miss tap
         is_in_neg_miss_range = -ManiaScoreData.neg_hit_miss_range < time_offset <= -ManiaScoreData.neg_hit_range
         if is_in_neg_miss_range:
-            column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISS, map_idx ])
+            column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISSP, map_idx ])
+            if not is_single_note:
+                column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx + 1], ManiaScoreData.TYPE_MISSR, map_idx + 1 ])
             return 2  # Advance to next note
         
         # Hit range
@@ -106,7 +109,9 @@ class ManiaScoreData():
         # Late miss tap
         is_in_pos_miss_range = ManiaScoreData.pos_hit_range < time_offset <= ManiaScoreData.pos_hit_miss_range
         if is_in_pos_miss_range:
-            column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISS, map_idx ])
+            column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISSP, map_idx ])
+            if not is_single_note:
+                column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx + 1], ManiaScoreData.TYPE_MISSR, map_idx + 1 ])
             return 2  # Advance to next note
 
         # Way late taps. Doesn't matter where, ignore these
@@ -142,7 +147,7 @@ class ManiaScoreData():
         # Early miss tap
         is_in_neg_miss_range = -ManiaScoreData.neg_rel_miss_range < time_offset <= -ManiaScoreData.neg_rel_range
         if is_in_neg_miss_range:
-            column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISS, map_idx ])
+            column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISSR, map_idx ])
             return 1  # Advance to next note
         
         # Hit range
@@ -154,7 +159,7 @@ class ManiaScoreData():
         # Late miss tap
         is_in_pos_miss_range = ManiaScoreData.pos_rel_range < time_offset <= ManiaScoreData.pos_rel_miss_range
         if is_in_pos_miss_range:
-            column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISS, map_idx ])
+            column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISSR, map_idx ])
             return 1  # Advance to next note
 
         # Way late taps. Doesn't matter where, ignore these
@@ -180,7 +185,11 @@ class ManiaScoreData():
         if note_type == ManiaActionData.PRESS:
             is_in_pos_nothing_range = ManiaScoreData.pos_hit_miss_range < time_offset
             if is_in_pos_nothing_range:
-                column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISS, map_idx ])
+                is_single_note = ((map_times[map_idx + 1] - map_times[map_idx]) <= 1)
+
+                column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISSP, map_idx ])
+                if not is_single_note:
+                    column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx + 1], ManiaScoreData.TYPE_MISSR, map_idx + 1 ])
                 return 2  # Advance to next note
 
             return 0  # Don't advance to next note
@@ -190,7 +199,7 @@ class ManiaScoreData():
             if is_in_pos_nothing_range:
                 is_single_note = ((map_times[map_idx] - map_times[map_idx - 1]) <= 1)
                 if not is_single_note and not ManiaScoreData.lazy_sliders:
-                    column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISS, map_idx ])
+                    column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISSR, map_idx ])
                 return 1  # Advance to next note
 
             return 0  # Don't advance to next note

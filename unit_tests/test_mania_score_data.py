@@ -56,45 +56,79 @@ class TestManiaScoreData(unittest.TestCase):
     def test_scoring_integrity(self):
         # The number of hits + misses should match for all same maps
         beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\Goreshit - Satori De Pon! (SReisen) [Star Burst 2!].osu')
-        replay1 = ReplayIO.open_replay('unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr')
-        replay2 = ReplayIO.open_replay('unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr')
 
-        map_data = ManiaActionData.get_action_data(beatmap)
-        score_data1 = ManiaScoreData.get_score_data(map_data, ManiaActionData.get_action_data(replay1))
-        score_data2 = ManiaScoreData.get_score_data(map_data, ManiaActionData.get_action_data(replay2))
+        def test(replay1_filename, replay2_filename, press_release):
+            replay1 = ReplayIO.open_replay(replay1_filename)
+            replay2 = ReplayIO.open_replay(replay2_filename)
 
-        for c in range(score_data1.shape[1]):
-            score_col1 = score_data1.loc[c]
-            score_col2 = score_data2.loc[c]
+            map_data = ManiaActionData.get_action_data(beatmap)
+            score_data1 = ManiaScoreData.get_score_data(map_data, ManiaActionData.get_action_data(replay1))
+            score_data2 = ManiaScoreData.get_score_data(map_data, ManiaActionData.get_action_data(replay2))
 
-            num_hits1 = score_col1['type'].values[score_col1['type'].values == ManiaScoreData.TYPE_HITP].shape[0]
-            num_miss1 = score_col1['type'].values[score_col1['type'].values == ManiaScoreData.TYPE_MISS].shape[0]
+            hit_type  = ManiaScoreData.TYPE_HITP  if press_release == 1 else ManiaScoreData.TYPE_HITR
+            miss_type = ManiaScoreData.TYPE_MISSP if press_release == 1 else ManiaScoreData.TYPE_MISSR
 
-            num_hits2 = score_col2['type'].values[score_col2['type'].values == ManiaScoreData.TYPE_HITP].shape[0]
-            num_miss2 = score_col2['type'].values[score_col2['type'].values == ManiaScoreData.TYPE_MISS].shape[0]
+            for c in range(score_data1.shape[1]):
+                score_col1 = score_data1.loc[c]
+                score_col2 = score_data2.loc[c]
 
-            hitp_t1 = score_col1['map_t'].values[score_col1['type'].values == ManiaScoreData.TYPE_HITP]
-            miss_t1 = score_col1['map_t'].values[score_col1['type'].values == ManiaScoreData.TYPE_MISS]
-            notes_t1 = np.concatenate((hitp_t1, miss_t1), axis=None).astype(int)  # All note timings in score 1
-            notes_t1 = np.sort(notes_t1)
+                num_hits1 = score_col1['type'].values[score_col1['type'].values == hit_type].shape[0]
+                num_miss1 = score_col1['type'].values[score_col1['type'].values == miss_type].shape[0]
 
-            hitp_t2 = score_col2['map_t'].values[score_col2['type'].values == ManiaScoreData.TYPE_HITP]
-            miss_t2 = score_col2['map_t'].values[score_col2['type'].values == ManiaScoreData.TYPE_MISS]
-            notes_t2 = np.concatenate((hitp_t2, miss_t2), axis=None).astype(int)  # All note timings in score 2
-            notes_t2 = np.sort(notes_t2)
+                num_hits2 = score_col2['type'].values[score_col2['type'].values == hit_type].shape[0]
+                num_miss2 = score_col2['type'].values[score_col2['type'].values == miss_type].shape[0]
 
-            notes_count1 = np.zeros(max(np.max(notes_t1), np.max(notes_t2)) + 1)
-            notes_count2 = np.zeros(max(np.max(notes_t1), np.max(notes_t2)) + 1)
+                hitp_t1 = score_col1['map_t'].values[score_col1['type'].values == hit_type]
+                miss_t1 = score_col1['map_t'].values[score_col1['type'].values == miss_type]
+                notes_t1 = np.concatenate((hitp_t1, miss_t1), axis=None).astype(int)  # All note timings in score 1
+                notes_t1 = np.sort(notes_t1)
 
-            notes_count1[:np.max(notes_t1)+1] = np.bincount(notes_t1)  # Integer histogram for timings of score 1
-            notes_count2[:np.max(notes_t2)+1] = np.bincount(notes_t2)  # Integer histogram for timings of score 2
-            notes_mismatch = np.arange(max(np.max(notes_t1), np.max(notes_t2)) + 1)[notes_count1 != notes_count2]
+                hitp_t2 = score_col2['map_t'].values[score_col2['type'].values == hit_type]
+                miss_t2 = score_col2['map_t'].values[score_col2['type'].values == miss_type]
+                notes_t2 = np.concatenate((hitp_t2, miss_t2), axis=None).astype(int)  # All note timings in score 2
+                notes_t2 = np.sort(notes_t2)
 
-            self.assertEqual(num_hits1 + num_miss1, num_hits2 + num_miss2, 
-                f'One of two maps have missing or extra scoring points at column {c}\n'
-                f'Score 1 hits & misses: {num_hits1} + {num_miss1} = {num_hits1 + num_miss1}    score 2 hits & misses: {num_hits2} + {num_miss2} = {num_hits2 + num_miss2}\n'
-                f'Note timings mismatched: {notes_mismatch}   score 1 occurences: {notes_count1[notes_count1 != notes_count2]}    score 2 occurences: {notes_count2[notes_count1 != notes_count2]}\n'
-            )
+                notes_count1 = np.zeros(max(np.max(notes_t1), np.max(notes_t2)) + 1)
+                notes_count2 = np.zeros(max(np.max(notes_t1), np.max(notes_t2)) + 1)
+
+                notes_count1[:np.max(notes_t1)+1] = np.bincount(notes_t1)  # Integer histogram for timings of score 1
+                notes_count2[:np.max(notes_t2)+1] = np.bincount(notes_t2)  # Integer histogram for timings of score 2
+                notes_mismatch = np.arange(max(np.max(notes_t1), np.max(notes_t2)) + 1)[notes_count1 != notes_count2]
+
+                replay1_name = replay1_filename[replay1_filename.rfind("\\") + 1:]
+                replay2_name = replay2_filename[replay2_filename.rfind("\\") + 1:]
+
+                self.assertEqual(num_hits1 + num_miss1, num_hits2 + num_miss2,
+                    f'\n\tReplays: {replay1_name}    {replay2_name}\n'
+                    f'\tTest for {"Press" if press_release == 1 else "Release"}\n'
+                    f'\tOne of two maps have missing or extra scoring points at column {c}\n'
+                    f'\tScore 1 hits & misses: {num_hits1} + {num_miss1} = {num_hits1 + num_miss1}    score 2 hits & misses: {num_hits2} + {num_miss2} = {num_hits2 + num_miss2}\n'
+                    f'\tNote timings mismatched: {notes_mismatch}   score 1 occurences: {notes_count1[notes_count1 != notes_count2]}    score 2 occurences: {notes_count2[notes_count1 != notes_count2]}\n'
+                )
+
+        test(
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr',
+            press_release=1
+        )
+
+        test(
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr',
+            press_release=0
+        )
+
+        test(
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
+            press_release=1
+        )
+
+        test(
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
+            press_release=0
+        )
 
 
     def test_get_custom_score_data(self):
