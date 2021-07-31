@@ -80,7 +80,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
 
                 self.assertEqual(column_data[0][0], ms, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][1], self.map_times[map_idx], f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISS, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISSP, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][3], map_idx, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
 
@@ -111,7 +111,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
 
                 self.assertEqual(column_data[0][0], ms, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][1], self.map_times[map_idx], f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISS, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISSP, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][3], map_idx, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
             elif -ManiaScoreData.neg_hit_range < offset <= ManiaScoreData.pos_hit_range:
@@ -131,7 +131,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
 
                 self.assertEqual(column_data[0][0], ms, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][1], self.map_times[map_idx], f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISS, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISSP, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][3], map_idx, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
             elif ManiaScoreData.pos_hit_miss_range < offset:
@@ -207,12 +207,12 @@ class TestManiaScoreDataPress(unittest.TestCase):
                 self.assertEqual(len(column_data), 0, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
             else:
                 self.assertEqual(adv, 2, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(len(column_data), 1, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(len(column_data), 2, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertIn(0, column_data, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
                 self.assertEqual(column_data[0][0], ms, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][1], self.map_times[map_idx], f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISS, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISSP, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][3], map_idx, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
         
@@ -238,12 +238,12 @@ class TestManiaScoreDataPress(unittest.TestCase):
             
             elif -ManiaScoreData.neg_hit_miss_range < offset <= -ManiaScoreData.neg_hit_range:
                 self.assertEqual(adv, 2, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(len(column_data), 1, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(len(column_data), 2, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertIn(0, column_data, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
                 self.assertEqual(column_data[0][0], ms, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][1], self.map_times[map_idx], f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISS, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISSP, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][3], map_idx, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
             elif -ManiaScoreData.neg_hit_range < offset <= ManiaScoreData.pos_hit_range:
@@ -258,12 +258,12 @@ class TestManiaScoreDataPress(unittest.TestCase):
 
             elif ManiaScoreData.pos_hit_range < offset <= ManiaScoreData.pos_hit_miss_range:
                 self.assertEqual(adv, 2, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(len(column_data), 1, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(len(column_data), 2, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertIn(0, column_data, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
                 self.assertEqual(column_data[0][0], ms, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][1], self.map_times[map_idx], f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISS, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISSP, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][3], map_idx, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
             elif ManiaScoreData.pos_hit_miss_range < offset:
@@ -301,7 +301,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
 
                 self.assertEqual(column_data[0][0], ms, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][1], self.map_times[map_idx], f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISS, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISSR, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][3], map_idx, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
             elif -ManiaScoreData.neg_rel_range < offset <= ManiaScoreData.pos_rel_range:
@@ -321,7 +321,7 @@ class TestManiaScoreDataPress(unittest.TestCase):
 
                 self.assertEqual(column_data[0][0], ms, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][1], self.map_times[map_idx], f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
-                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISS, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
+                self.assertEqual(column_data[0][2], ManiaScoreData.TYPE_MISSR, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
                 self.assertEqual(column_data[0][3], map_idx, f'Offset: {offset} ms;   Replay: {ms} ms;   Map: {self.map_times[map_idx]} ms')
 
             elif ManiaScoreData.pos_rel_miss_range < offset:

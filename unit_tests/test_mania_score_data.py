@@ -32,7 +32,8 @@ class TestManiaScoreData(unittest.TestCase):
         score_data = ManiaScoreData.get_score_data(map_data, replay_data)
 
         score_types = score_data['type'].values
-        self.assertEqual(len(score_types[score_types == ManiaScoreData.TYPE_MISS]), 0)
+        self.assertEqual(len(score_types[score_types == ManiaScoreData.TYPE_MISSP]), 0)
+        self.assertEqual(len(score_types[score_types == ManiaScoreData.TYPE_MISSR]), 0)
 
         # Mania auto releases hold notes 1 ms early
         offsets = (score_data['replay_t'] - score_data['map_t']).values
