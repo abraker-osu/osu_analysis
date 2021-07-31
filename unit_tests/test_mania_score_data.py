@@ -12,8 +12,23 @@ from analysis.mania.score_data import ManiaScoreData
 class TestManiaScoreData(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        pass
+    def setUp(cls):
+        ManiaScoreData.pos_hit_range       = 100
+        ManiaScoreData.neg_hit_range       = 100
+        ManiaScoreData.pos_hit_miss_range  = 200
+        ManiaScoreData.neg_hit_miss_range  = 200
+
+        ManiaScoreData.pos_rel_range       = 300
+        ManiaScoreData.neg_rel_range       = 300
+        ManiaScoreData.pos_rel_miss_range  = 500
+        ManiaScoreData.neg_rel_miss_range  = 500
+
+        ManiaScoreData.notelock = True
+        ManiaScoreData.dynamic_window = False
+        ManiaScoreData.blank_miss = False
+        ManiaScoreData.lazy_sliders = False
+        ManiaScoreData.overlap_miss_handling = False
+        ManiaScoreData.overlap_hit_handling  = False
 
 
     @classmethod
