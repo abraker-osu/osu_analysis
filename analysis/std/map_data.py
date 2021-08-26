@@ -1,3 +1,4 @@
+from osu_analysis.beatmap_reader.beatmap_reader.gamemode import Gamemode
 import numpy as np
 import pandas as pd
 import math
@@ -79,6 +80,9 @@ class StdMapData():
         """
         if not isinstance(beatmap, IBeatmap):
             raise TypeError(f'Not beatmap object type: {type(beatmap)}')
+
+        if beatmap.gamemode != Gamemode.OSU:
+            raise TypeError(f'Beatmap is not an osu!standard beatmap (Gamemode = {beatmap.gamemode})')
 
         map_data = []
 
