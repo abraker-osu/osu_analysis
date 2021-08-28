@@ -448,15 +448,16 @@ class StdScoreData():
 
         # map_time is the time at which hitobject processing logic is at
         map_time = StdMapData.all_times(map_data)[0]
+        map_time_max = StdMapData.all_times(map_data)[-1]
 
         # Number of things to loop through
         replay_data = StdReplayData.get_reduced_replay_data(replay_data, press_block=StdScoreData.press_block, release_block=StdScoreData.release_block).values
-        num_replay_events = len(replay_data)
+        replay_idx_max = replay_data.shape[0]
 
         # Go through replay events
         while True:
             # Condition check whether all player actions in the column have been processed
-            if replay_idx >= num_replay_events: break
+            if replay_idx >= replay_idx_max: break
 
             # Data for this event frame
             replay_time = replay_data[replay_idx][0]  # time
@@ -469,10 +470,9 @@ class StdScoreData():
 
             # Go through map
             while True:
-                # Get time of earliest visble hitobject still remaining, but if make sure things that
+                # Get time of earliest visble hitobject still remaining, but make sure things that
                 # have yet to be processed have been processed (in the case of replay skipping)
-                #earliest_visible_time = replay_time - StdScoreData.pos_hit_nothing_range
-
+                # earliest_visible_time = replay_time - StdScoreData.pos_hit_nothing_range
                 start_time = min(map_time, replay_time + ar_ms) - 1
                 end_time   = max(map_time, replay_time + ar_ms)
 
@@ -485,7 +485,12 @@ class StdScoreData():
                 # Check for any skipped notes (if replay has event gaps)
                 adv = StdScoreData.__process_free(score_data, visible_notes, replay_time, replay_xpos, replay_ypos)
                 if adv == StdScoreData.__ADV_NOP: break
+
                 map_time = StdScoreData.__adv(map_data, map_time, adv)
+
+                # If we reached end of map
+                if map_time > map_time_max:
+                    break
 
             # Nothing to process if no notes are visible
             if len(visible_notes) == 0: continue
