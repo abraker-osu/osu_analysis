@@ -511,7 +511,7 @@ class StdScoreData():
                 if replay_time <= map_time: break
 
                 # Check for any skipped notes (if replay has event gaps)
-                adv = StdScoreData.__process_free(score_data, visible_notes, replay_time, replay_xpos, replay_ypos)
+                adv = StdScoreData.__process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos)
                 if adv == StdScoreData.__ADV_NOP: break
 
                 map_time = StdScoreData.__adv(map_data, map_time, adv)
