@@ -37,129 +37,156 @@ class StdScoreData():
     DATA_TYPE    = 1
     DATA_MAP_IDX = 2
 
-    '''
-    The following must be true:
-        0 < pos_hit_range < pos_hit_miss_range < inf
-        0 < neg_hit_range < neg_hit_miss_range < inf
+    class Settings():
 
-    Hit processing occurs:
-        -neg_hit_range -> pos_hit_range
+        def __setattr__(self, key, value):
+            try:
+                if not self.__is_frozen:
+                    object.__setattr__(self, key, value)
+                    return
+            except AttributeError:
+                object.__setattr__(self, '_Settings__is_frozen', False)
+                object.__setattr__(self, key, value)
+                return
 
-    Miss processing occurs:
-        -neg_hit_miss_range -> neg_hit_range
-        pos_hit_range -> pos_hit_miss_range
+            if not hasattr(self, key):
+                raise KeyError( f'Setting {key} does not exist!')
+            
+            if key == '__is_frozen':
+                raise KeyError( f'__is_frozen is value locked!')
 
-    No processing occurs:
-        -inf -> -neg_hit_miss_range
-        pos_hit_miss_range -> inf
-    '''
-    pos_hit_range      = 300    # ms point of late hit window
-    neg_hit_range      = 300    # ms point of early hit window
-    pos_hit_miss_range = 450    # ms point of late miss window
-    neg_hit_miss_range = 450    # ms point of early miss window
+            object.__setattr__(self, key, value)
 
-    pos_rel_range       = 500   # ms point of late release window
-    neg_rel_range       = 500   # ms point of early release window
-    pos_rel_miss_range  = 1000  # ms point of late release window
-    neg_rel_miss_range  = 1000  # ms point of early release window
 
-    neg_hld_range   = 50    # ms range of early hold
-    pos_hld_range   = 1000  # ms range of late hold
+        def __init__(self):
+            self.__is_frozen = False
 
-    dist_miss_range = 50    # ms range the cursor can deviate from aimpoint distance threshold before it's a miss
+            '''
+            The following must be true:
+                0 < pos_hit_range < pos_hit_miss_range < inf
+                0 < neg_hit_range < neg_hit_miss_range < inf
 
-    hitobject_radius = 36.5 # Radius from hitobject for which cursor needs to be within for a tap to count
-    follow_radius    = 100  # Radius from slider aimpoint for which cursor needs to be within for a hold to count
-    release_radius   = 100  # Radius from release aimpoint for which cursor needs to be within for a release to count
+            Hit processing occurs:
+                -neg_hit_range -> pos_hit_range
 
-    """
-    Disables hit processing if hit on a note is too early. If False, the neg_miss_range of the current note is 
-    overridden to extend to the previous note's pos_hit_range boundary.
+            Miss processing occurs:
+                -neg_hit_miss_range -> neg_hit_range
+                pos_hit_range -> pos_hit_miss_range
 
-    TODO: implement
-    """
-    notelock = True
+            No processing occurs:
+                -inf -> -neg_hit_miss_range
+                pos_hit_miss_range -> inf
+            '''
+            self.pos_hit_range = 300        # ms point of late hit window
+            self.neg_hit_range = 300        # ms point of early hit window
+            self.pos_hit_miss_range = 450   # ms point of late miss window
+            self.neg_hit_miss_range = 450   # ms point of early miss window
 
-    """
-    Overrides the miss and hit windows to correspond to spacing between notes. If True then all 
-    the ranges are are overridden to be split up in 1/4th sections relative to the distance between 
-    current and next notes
+            self.pos_rel_range = 500        # ms point of late release window
+            self.neg_rel_range = 500        # ms point of early release window
+            self.pos_rel_miss_range = 1000  # ms point of late release window
+            self.neg_rel_miss_range = 1000  # ms point of early release window
 
-    TODO: implement
-    """
-    dynamic_window = False
+            self.neg_hld_range   = 50       # ms range of early hold
+            self.pos_hld_range   = 1000     # ms range of late hold
 
-    """
-    Enables missing in blank space. If True, the Nothing window behaves like the miss window, but the 
-    iterator does not go to the next note. Also allows missing when clicked in empty space.
-    """
-    blank_miss = False
+            self.dist_miss_range = 50       # ms range the cursor can deviate from aimpoint distance threshold before it's a miss
 
-    """
-    If True, holds have to be times in distance range of HOLD scorepoint prior to completing it
-    If False, the player can complete the slider with cursor being anywhere so long as the key is held down
-    """
-    hold_range_window = False
+            self.hitobject_radius = 36.5    # Radius from hitobject for which cursor needs to be within for a tap to count
+            self.follow_radius    = 100     # Radius from slider aimpoint for which cursor needs to be within for a hold to count
+            self.release_radius   = 100     # Radius from release aimpoint for which cursor needs to be within for a release to count
+            self.ar_ms            = 450     # Number of milliseconds back in time the hitobject first becomes visible
 
-    """
-    If True,  holds have to be times in distance range of HOLD scorepoint prior to completing it or it will miss
-    If False, the scorepoint won't be completed until the cursor is in distance range of scorepoint
-    
-    hold_range_window must be True for this to take effect
-    """
-    hold_range_miss = False
+            """
+            Disables hit processing if hit on a note is too early. If False, the neg_miss_range of the current note is 
+            overridden to extend to the previous note's pos_hit_range boundary.
 
-    """
-    If True, sliders can be released and then pressed again so long as player holds key down when an aimpoint
-    is passed. If false, then upon release all aimpoints that follow are dropped and note's release timing is processed
-    """
-    recoverable_release = True
+            TODO: implement
+            """
+            self.notelock = True
 
-    """
-    If True, release have to be in range of RELEASE scorepoint to count
-    """
-    release_range = False
+            """
+            Overrides the miss and hit windows to correspond to spacing between notes. If True then all 
+            the ranges are are overridden to be split up in 1/4th sections relative to the distance between 
+            current and next notes
 
-    """
-    If True, release miss range is processed. Otherwise, it's impossible to miss a release
-    """
-    release_miss = True
+            TODO: implement
+            """
+            self.dynamic_window = False
 
-    """
-    If True, then there is a release window. Otherwise, a release can be counted whenever 
-    key is released, basically treating them as single notes. Also if True, release_miss does nothing
-    """
-    release_window = True
+            """
+            Enables missing in blank space. If True, the Nothing window behaves like the miss window, but the 
+            iterator does not go to the next note. Also allows missing when clicked in empty space.
+            """
+            self.blank_miss = False
 
-    """
-    If True, the cursor can wander off slider and come back so long as the cursor is there when it's time for the aimpoint
-    to be processed. If False, then slider release timing is triggered as soon as the cursor is out of range 
-    """
-    recoverable_missaim = True
+            """
+            If True, holds have to be times in distance range of HOLD scorepoint prior to completing it
+            If False, the player can complete the slider with cursor being anywhere so long as the key is held down
+            """
+            self.hold_range_window = False
 
-    """
-    There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all 
-    overlapped miss hitwindow sections are all processed simultaniously for one key event. If 
-    False, each overlapped miss part is processed for each individual key event.
-    """
-    overlap_miss_handling = False
+            """
+            If True,  holds have to be times in distance range of HOLD scorepoint prior to completing it or it will miss
+            If False, the scorepoint won't be completed until the cursor is in distance range of scorepoint
+            
+            hold_range_window must be True for this to take effect
+            """
+            self.hold_range_miss = False
 
-    """
-    There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all 
-    overlapped non miss hitwindow parts are all processed simultaniously for one key event. If 
-    False, each overlapped hit part is processed for each individual key event.
-    """
-    overlap_hit_handling = False
+            """
+            If True, sliders can be released and then pressed again so long as player holds key down when an aimpoint
+            is passed. If false, then upon release all aimpoints that follow are dropped and note's release timing is processed
+            """
+            self.recoverable_release = True
 
-    """
-    If true then presses while holding another key will not register
-    """
-    press_block = False
+            """
+            If True, release have to be in range of RELEASE scorepoint to count
+            """
+            self.release_range = False
 
-    """
-    If true then releases while holding another key will not register
-    """
-    release_block = False
+            """
+            If True, release miss range is processed. Otherwise, it's impossible to miss a release
+            """
+            self.release_miss = True
+
+            """
+            If True, then there is a release window. Otherwise, a release can be counted whenever 
+            key is released, basically treating them as single notes. Also if True, release_miss does nothing
+            """
+            self.release_window = True
+
+            """
+            If True, the cursor can wander off slider and come back so long as the cursor is there when it's time for the aimpoint
+            to be processed. If False, then slider release timing is triggered as soon as the cursor is out of range 
+            """
+            self.recoverable_missaim = True
+
+            """
+            There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all 
+            overlapped miss hitwindow sections are all processed simultaniously for one key event. If 
+            False, each overlapped miss part is processed for each individual key event.
+            """
+            self.overlap_miss_handling = False
+
+            """
+            There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all 
+            overlapped non miss hitwindow parts are all processed simultaniously for one key event. If 
+            False, each overlapped hit part is processed for each individual key event.
+            """
+            self.overlap_hit_handling = False
+
+            """
+            If true then presses while holding another key will not register
+            """
+            self.press_block = False
+
+            """
+            If true then releases while holding another key will not register
+            """
+            self.release_block = False
+
+            self.__is_frozen = True
 
 
     @staticmethod
@@ -184,7 +211,7 @@ class StdScoreData():
 
 
     @staticmethod
-    def __process_free(score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
+    def __process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
         note_idx = visible_notes.index[0][0]
 
         # Aimpoint data
@@ -209,26 +236,26 @@ class StdScoreData():
 
         # Missed note by not pressing or missaiming
         if aimpoint_type == StdMapData.TYPE_PRESS:   
-            is_in_pos_nothing_range = time_offset > StdScoreData.pos_hit_miss_range
+            is_in_pos_nothing_range = time_offset > settings.pos_hit_miss_range
 
         if aimpoint_type == StdMapData.TYPE_RELEASE:
-            if StdScoreData.release_window:
-                is_in_pos_nothing_range = time_offset > StdScoreData.pos_rel_miss_range
+            if settings.release_window:
+                is_in_pos_nothing_range = time_offset > settings.pos_rel_miss_range
             else:
                 return StdScoreData.__ADV_NOP
 
         if aimpoint_type == StdMapData.TYPE_HOLD:
             # Recoverable missaim check
-            if not StdScoreData.recoverable_missaim:
+            if not settings.recoverable_missaim:
                 # If recoverable missaim is off, then wandering off the follow radius is a miss
-                if pos_offset > StdScoreData.follow_radius:
+                if pos_offset > settings.follow_radius:
                     score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, np.nan, np.nan, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.FREE, note_idx ])
                     return StdScoreData.__ADV_NOTE
 
             # Recoverable release check
-            if StdScoreData.recoverable_release:
+            if settings.recoverable_release:
                 # If recoverable release is on, allow some time to repress
-                is_in_pos_nothing_range = time_offset > StdScoreData.pos_hld_range
+                is_in_pos_nothing_range = time_offset > settings.pos_hld_range
             else:
                 is_in_pos_nothing_range = time_offset > 0
 
@@ -240,7 +267,7 @@ class StdScoreData():
 
 
     @staticmethod
-    def __process_press(score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
+    def __process_press(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
         note_idx = visible_notes.index[0][0]
 
         # Aimpoint data
@@ -263,30 +290,30 @@ class StdScoreData():
         pos_offset  = (posx_offset**2 + posy_offset**2)**0.5
 
         # Miss hit, not in circle
-        if pos_offset > StdScoreData.hitobject_radius:
+        if pos_offset > settings.hitobject_radius:
             # Blank Miss check
-            if StdScoreData.blank_miss:
+            if settings.blank_miss:
                 score_data[len(score_data)] = np.asarray([ replay_time, np.nan, replay_xpos, replay_ypos, np.nan, np.nan, StdScoreData.TYPE_EMPTY, StdReplayData.PRESS, None ])
             return StdScoreData.__ADV_NOP
 
         # Stuff after this is within circle
 
         # Way early taps
-        is_in_neg_nothing_range = time_offset <= -StdScoreData.neg_hit_miss_range
+        is_in_neg_nothing_range = time_offset <= -settings.neg_hit_miss_range
         if is_in_neg_nothing_range:
             # Blank Miss check
-            if StdScoreData.blank_miss:
+            if settings.blank_miss:
                 score_data[len(score_data)] = np.asarray([ replay_time, np.nan, replay_xpos, replay_ypos, np.nan, np.nan, StdScoreData.TYPE_EMPTY, StdReplayData.PRESS, None ])
             return StdScoreData.__ADV_NOP
 
         # Early miss tap
-        is_in_neg_miss_range = -StdScoreData.neg_hit_miss_range < time_offset <= -StdScoreData.neg_hit_range
+        is_in_neg_miss_range = -settings.neg_hit_miss_range < time_offset <= -settings.neg_hit_range
         if is_in_neg_miss_range:
             score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.PRESS, note_idx ])
             return StdScoreData.__ADV_NOTE
 
         # Hit window
-        is_in_hit_range = -StdScoreData.neg_hit_range < time_offset <= StdScoreData.pos_hit_range
+        is_in_hit_range = -settings.neg_hit_range < time_offset <= settings.pos_hit_range
         if is_in_hit_range:
             score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_HITP, StdReplayData.PRESS, note_idx ])
             if aimpoint_obj == StdMapData.TYPE_SLIDER:
@@ -295,19 +322,19 @@ class StdScoreData():
                 return StdScoreData.__ADV_NOTE
 
         # Late miss tap
-        is_in_pos_miss_range = StdScoreData.pos_hit_range < time_offset <= StdScoreData.pos_hit_miss_range
+        is_in_pos_miss_range = settings.pos_hit_range < time_offset <= settings.pos_hit_miss_range
         if is_in_pos_miss_range:
             score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.PRESS, note_idx ])
             return StdScoreData.__ADV_NOTE
 
         # Way late taps. Ignore these
-        is_in_pos_nothing_range = StdScoreData.pos_hit_miss_range < time_offset
+        is_in_pos_nothing_range = settings.pos_hit_miss_range < time_offset
         if is_in_pos_nothing_range:
             return StdScoreData.__ADV_NOP
 
 
     @staticmethod
-    def __process_hold(score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
+    def __process_hold(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
         note_idx = visible_notes.index[0][0]
 
         # Aimpoint data
@@ -329,31 +356,31 @@ class StdScoreData():
         pos_offset  = (posx_offset**2 + posy_offset**2)**0.5
 
         # Hold range check
-        if StdScoreData.hold_range_window:
-            if pos_offset > StdScoreData.follow_radius:
+        if settings.hold_range_window:
+            if pos_offset > settings.follow_radius:
                 # Hold range miss check
-                if StdScoreData.hold_range_miss:
+                if settings.hold_range_miss:
                     score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.HOLD, note_idx ])
                     return StdScoreData.__ADV_NOTE
                 else:
                     return StdScoreData.__ADV_NOP
         
         # Too early to count
-        if time_offset <= -StdScoreData.neg_hld_range:
+        if time_offset <= -settings.neg_hld_range:
             return StdScoreData.__ADV_NOP
 
         # Hold window
-        if -StdScoreData.neg_hld_range < time_offset <= StdScoreData.pos_hld_range:
+        if -settings.neg_hld_range < time_offset <= settings.pos_hld_range:
             score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_AIMH, StdReplayData.HOLD, note_idx ])
             return StdScoreData.__ADV_AIMP
 
         # Too late to count
-        if StdScoreData.pos_hld_range < time_offset:
+        if settings.pos_hld_range < time_offset:
             return StdScoreData.__ADV_NOP
 
 
     @staticmethod
-    def __process_release(score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
+    def __process_release(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
         note_idx = visible_notes.index[0][0]
 
         # Aimpoint data
@@ -372,7 +399,7 @@ class StdScoreData():
         # If the scorepoint expects a hold, 
         # then ignore if the release can be recovered from
         if aimpoint_type == StdMapData.TYPE_HOLD:
-            if StdScoreData.recoverable_release:
+            if settings.recoverable_release:
                 return StdScoreData.__ADV_NOP
 
         time_offset = replay_time - aimpoint_time
@@ -391,54 +418,55 @@ class StdScoreData():
                 return StdScoreData.__ADV_NOP
 
         # Release range check
-        if StdScoreData.release_range:
+        if settings.release_range:
             # If it's outside distance range, then it's not processed
-            if pos_offset > StdScoreData.release_radius:
+            if pos_offset > settings.release_radius:
                 return StdScoreData.__ADV_NOP
 
         # Release window check
-        if not StdScoreData.release_window:
+        if not settings.release_window:
             score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_HITR, StdReplayData.RELEASE, note_idx ])
             return StdScoreData.__ADV_AIMP
 
         # Way early release
-        is_in_neg_nothing_range = time_offset <= -StdScoreData.neg_rel_miss_range
+        is_in_neg_nothing_range = time_offset <= -settings.neg_rel_miss_range
         if is_in_neg_nothing_range:
             return StdScoreData.__ADV_NOP
         
         # Early miss release
-        is_in_neg_miss_range = -StdScoreData.neg_rel_miss_range < time_offset <= -StdScoreData.neg_rel_range
+        is_in_neg_miss_range = -settings.neg_rel_miss_range < time_offset <= -settings.neg_rel_range
         if is_in_neg_miss_range:
-            if StdScoreData.release_miss:
+            if settings.release_miss:
                 score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.RELEASE, note_idx ])
                 return StdScoreData.__ADV_NOTE
             else:
                 return StdScoreData.__ADV_NOP
 
         # Release window
-        is_in_rel_range = -StdScoreData.neg_rel_range < time_offset <= StdScoreData.pos_rel_range
+        is_in_rel_range = -settings.neg_rel_range < time_offset <= settings.pos_rel_range
         if is_in_rel_range:
             score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_HITR, StdReplayData.RELEASE, note_idx ])
             return StdScoreData.__ADV_AIMP
 
         # Late miss release
-        is_in_pos_miss_range = StdScoreData.pos_rel_range < time_offset <= StdScoreData.pos_rel_miss_range
+        is_in_pos_miss_range = settings.pos_rel_range < time_offset <= settings.pos_rel_miss_range
         if is_in_pos_miss_range:
-            if StdScoreData.release_miss:
+            if settings.release_miss:
                 score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, replay_xpos, replay_ypos, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.RELEASE, note_idx ])
                 return StdScoreData.__ADV_NOTE
             else:
                 return StdScoreData.__ADV_NOP
 
         # Way late release
-        is_in_pos_nothing_range = StdScoreData.pos_rel_miss_range < time_offset
+        is_in_pos_nothing_range = settings.pos_rel_miss_range < time_offset
         if is_in_pos_nothing_range:
             return StdScoreData.__ADV_NOP
 
 
     @staticmethod
-    def get_score_data(replay_data, map_data, ar_ms=750, cs_px=36.5):
-        StdScoreData.hitobject_radius = cs_px
+    def get_score_data(replay_data, map_data, settings=Settings()):
+        # ar_ms=750, cs_px=36.5
+        #StdScoreData.hitobject_radius = cs_px
 
         # Score data that will be filled in and returned
         score_data = {}
@@ -451,7 +479,7 @@ class StdScoreData():
         map_time_max = StdMapData.all_times(map_data)[-1]
 
         # Number of things to loop through
-        replay_data = StdReplayData.get_reduced_replay_data(replay_data, press_block=StdScoreData.press_block, release_block=StdScoreData.release_block).values
+        replay_data = StdReplayData.get_reduced_replay_data(replay_data, press_block=settings.press_block, release_block=settings.release_block).values
         replay_idx_max = replay_data.shape[0]
 
         # Go through replay events
@@ -473,8 +501,8 @@ class StdScoreData():
                 # Get time of earliest visble hitobject still remaining, but make sure things that
                 # have yet to be processed have been processed (in the case of replay skipping)
                 # earliest_visible_time = replay_time - StdScoreData.pos_hit_nothing_range
-                start_time = min(map_time, replay_time + ar_ms) - 1
-                end_time   = max(map_time, replay_time + ar_ms)
+                start_time = min(map_time, replay_time + settings.ar_ms) - 1
+                end_time   = max(map_time, replay_time + settings.ar_ms)
 
                 # Get visible notes at current time
                 visible_notes = StdMapData.time_slice(map_data, start_time, end_time)
@@ -496,10 +524,10 @@ class StdScoreData():
             if len(visible_notes) == 0: continue
 
             # Process player actions
-            if replay_key == StdReplayData.FREE:    map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_free(score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
-            if replay_key == StdReplayData.PRESS:   map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_press(score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
-            if replay_key == StdReplayData.HOLD:    map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_hold(score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
-            if replay_key == StdReplayData.RELEASE: map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_release(score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
+            if replay_key == StdReplayData.FREE:    map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
+            if replay_key == StdReplayData.PRESS:   map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_press(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
+            if replay_key == StdReplayData.HOLD:    map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_hold(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
+            if replay_key == StdReplayData.RELEASE: map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_release(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
 
         # Convert recorded timings and states into a pandas data
         score_data = list(score_data.values())

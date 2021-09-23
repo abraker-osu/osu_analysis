@@ -1,3 +1,6 @@
+from .beatmap_reader import BeatmapIO, Gamemode
+from .replay_reader import ReplayIO
+
 from .analysis.std.map_data import StdMapData
 from .analysis.std.map_metrics import StdMapMetrics
 from .analysis.std.map_patterns import StdMapPatterns
@@ -12,6 +15,3 @@ from .analysis.std.score_metrics import StdScoreMetrics
 from .analysis.mania.action_data import ManiaActionData
 from .analysis.mania.map_metrics import ManiaMapMetrics
 from .analysis.mania.score_data import ManiaScoreData
-
-from .beatmap_reader import BeatmapIO, Gamemode
-from .replay_reader import ReplayIO

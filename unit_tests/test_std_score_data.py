@@ -233,26 +233,34 @@ class TestStdScoreData(unittest.TestCase):
 
 
     def test_process_press(self):
+        settings = StdScoreData.Settings()
         pass
 
 
     def test_process_hold(self):
+        settings = StdScoreData.Settings()
         pass
 
 
     def test_process_release(self):
+        settings = StdScoreData.Settings()
         pass
 
 
-    '''
     def test_get_score_data(self):
         beatmap = BeatmapIO.open_beatmap('unit_tests/maps/osu/test/score_test_new.osu')
         map_data = StdMapData.get_map_data(beatmap.hitobjects)
-        #replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test/autoplay.osr')
-        replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test/best_play.osr')
+        settings = StdScoreData.Settings()
+
+        replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test/autoplay.osr')
         replay_data = StdReplayData.get_replay_data(replay.play_data)
-        score_data = StdScoreData.get_score_data(replay_data, map_data)
-    '''
+        score_data = StdScoreData.get_score_data(replay_data, map_data, settings)
+
+        # All scores are hits in this play
+        self.assertTrue(all(score_data['type'] == StdScoreData.TYPE_HITP))
+
+        #replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test/best_play.osr')
+
 
     '''
     def test_get_score_data(self):

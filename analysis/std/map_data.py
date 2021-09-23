@@ -1,10 +1,18 @@
-from osu_analysis.beatmap_reader.beatmap_reader.gamemode import Gamemode
 import numpy as np
 import pandas as pd
 import math
 import itertools
 
 from osu_interfaces import IHitobject, IBeatmap
+
+
+
+class Gamemode():
+
+    OSU   =  0
+    TAIKO =  1
+    CATCH =  2
+    MANIA =  3
 
 
 
@@ -79,7 +87,7 @@ class StdMapData():
                 [109 rows x 3 columns]
         """
         if not isinstance(beatmap, IBeatmap):
-            raise TypeError(f'Not beatmap object type: {type(beatmap)}')
+            raise TypeError(f'Not beatmap object type: {type(beatmap)}  data = {beatmap}')
 
         if beatmap.gamemode != Gamemode.OSU:
             raise TypeError(f'Beatmap is not an osu!standard beatmap (Gamemode = {beatmap.gamemode})')
