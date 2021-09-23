@@ -257,7 +257,7 @@ class TestStdScoreData(unittest.TestCase):
         score_data = StdScoreData.get_score_data(replay_data, map_data, settings)
 
         # All scores are hits in this play
-        self.assertTrue(all(score_data['type'] == StdScoreData.TYPE_HITP))
+        self.assertTrue(not any(score_data['type'] == StdScoreData.TYPE_MISS), f'{score_data["type"].values == StdScoreData.TYPE_MISS}')
 
         #replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test/best_play.osr')
 
