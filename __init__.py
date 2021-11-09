@@ -1,5 +1,5 @@
 from .beatmap_reader import BeatmapIO, Gamemode
-from .replay_reader import ReplayIO
+from .replay_reader import ReplayIO, Mod
 
 from .analysis.std.map_data import StdMapData
 from .analysis.std.map_metrics import StdMapMetrics
