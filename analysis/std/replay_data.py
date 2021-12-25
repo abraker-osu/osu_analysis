@@ -62,10 +62,10 @@ class StdReplayData():
 
         replay = zip(replay.get_time_data(), replay.get_xpos_data(), replay.get_ypos_data(), replay.get_press_data())
         for d_time, xpos, ypos, key in replay:
-            k1_pressed    = (int(key) & k1_mask) > 0
-            k2_pressed    = (int(key) & k2_mask) > 0
-            m1_pressed    = (int(key) & m1_mask) > 0
-            m2_pressed    = (int(key) & m2_mask) > 0
+            k1_pressed    = ((int(key) & k1_mask) > 0) and ((int(key) & m1_mask) > 0)
+            k2_pressed    = ((int(key) & k2_mask) > 0) and ((int(key) & m2_mask) > 0)
+            m1_pressed    = ((int(key) & m1_mask) > 0) and ((int(key) & k1_mask) == 0)
+            m2_pressed    = ((int(key) & m2_mask) > 0) and ((int(key) & k2_mask) == 0)
             smoke_pressed = (int(key) & smoke_mask) > 0
 
             is_key_hold = np.asarray([ m1_pressed, m2_pressed, k1_pressed, k2_pressed, smoke_pressed ])
