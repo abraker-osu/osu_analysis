@@ -33,6 +33,10 @@ class StdScoreData():
     TYPE_MISS  = 3  # A miss has a hitobject associated with it, but not offset
     TYPE_EMPTY = 4  # An empty has neither hitobject nor offset associated with it
 
+    ACTION_PRESS   = StdReplayData.PRESS
+    ACTION_HOLD    = StdReplayData.HOLD
+    ACTION_RELEASE = StdReplayData.RELEASE
+
     DATA_OFFSET  = 0 
     DATA_TYPE    = 1
     DATA_MAP_IDX = 2
