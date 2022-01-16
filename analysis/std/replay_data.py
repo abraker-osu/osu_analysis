@@ -48,11 +48,8 @@ class StdReplayData():
         if not isinstance(replay, IReplay):
             raise TypeError(f'Not replay object type: {type(replay)}')
 
-        replay_data = {}
-
         # Previous state of whether finger is holding key down
         hold_state = np.asarray([ False for _ in range(5) ])
-        replay_time = 0
 
         m1_mask    = (1 << 0)
         m2_mask    = (1 << 1)
@@ -60,8 +57,21 @@ class StdReplayData():
         k2_mask    = (1 << 3)
         smoke_mask = (1 << 4)
 
-        replay = zip(replay.get_time_data(), replay.get_xpos_data(), replay.get_ypos_data(), replay.get_press_data())
-        for d_time, xpos, ypos, key in replay:
+        time_data = replay.get_time_data()
+        xpos_data = replay.get_xpos_data()
+        ypos_data = replay.get_ypos_data()
+        press_data = replay.get_press_data()
+
+        replay_data = np.zeros((len(time_data) + 1, 8))
+        replay_data[:-1, 0] = np.cumsum(time_data)
+        replay_data[:-1, 1] = xpos_data
+        replay_data[:-1, 2] = ypos_data
+
+        # An additional timing to prevent last press being recorded without release
+        replay_data[-1, :] = replay_data[-2, :]
+        replay_data[-1, 0] += 1
+
+        for key, i in zip(press_data, range(len(press_data))):
             k1_pressed    = ((int(key) & k1_mask) > 0) and ((int(key) & m1_mask) > 0)
             k2_pressed    = ((int(key) & k2_mask) > 0) and ((int(key) & m2_mask) > 0)
             m1_pressed    = ((int(key) & m1_mask) > 0) and ((int(key) & k1_mask) == 0)
@@ -75,17 +85,12 @@ class StdReplayData():
             data[ hold_state &  is_key_hold] = StdReplayData.HOLD
             data[ hold_state & ~is_key_hold] = StdReplayData.RELEASE
 
-            replay_time += d_time
-            
-            # Handles autoplay key press & release occuring at same time
-            t = replay_time
-            while t in replay_data: t +=1
-
-            replay_data[t] = [ replay_time, xpos, ypos ] + list(data)
+            replay_data[i, 3:] = data
             hold_state = is_key_hold
 
-        replay_data = list(replay_data.values())
-        replay_data.sort(key=lambda x: x[0])
+        sort_idx = np.argsort(replay_data[:, 0])
+        replay_data = replay_data[sort_idx]
+
         return pd.DataFrame(replay_data, columns=[ 'time', 'x', 'y', 'm1', 'm2', 'k1', 'k2', 'smoke' ])
 
 
