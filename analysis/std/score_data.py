@@ -242,31 +242,40 @@ class StdScoreData():
         # Missed note by not pressing or missaiming
         if aimpoint_type == StdMapData.TYPE_PRESS:   
             is_in_pos_nothing_range = time_offset > settings.pos_hit_miss_range
+            if is_in_pos_nothing_range:
+                score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, np.nan, np.nan, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.PRESS, note_idx ])
+                return StdScoreData.__ADV_NOTE
+            # else return StdScoreData.__ADV_NOP (implicit)
 
         if aimpoint_type == StdMapData.TYPE_RELEASE:
             if settings.release_window:
                 is_in_pos_nothing_range = time_offset > settings.pos_rel_miss_range
-            else:
-                return StdScoreData.__ADV_NOP
+                if is_in_pos_nothing_range:
+                    score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, np.nan, np.nan, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.RELEASE, note_idx ])
+                    return StdScoreData.__ADV_NOTE
+                # else return StdScoreData.__ADV_NOP (implicit)
+            # else return StdScoreData.__ADV_NOP (implicit)
 
         if aimpoint_type == StdMapData.TYPE_HOLD:
             # Recoverable missaim check
             if not settings.recoverable_missaim:
                 # If recoverable missaim is off, then wandering off the follow radius is a miss
                 if pos_offset > settings.follow_radius:
-                    score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, np.nan, np.nan, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.FREE, note_idx ])
+                    score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, np.nan, np.nan, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.HOLD, note_idx ])
                     return StdScoreData.__ADV_NOTE
-
-            # Recoverable release check
-            if settings.recoverable_release:
-                # If recoverable release is on, allow some time to repress
-                is_in_pos_nothing_range = time_offset > settings.pos_hld_range
+                # else return StdScoreData.__ADV_NOP (implicit)
             else:
-                is_in_pos_nothing_range = time_offset > 0
+                # Recoverable release check
+                if settings.recoverable_release:
+                    # If recoverable release is on, allow some time to repress
+                    is_in_pos_nothing_range = time_offset > settings.pos_hld_range
+                else:
+                    is_in_pos_nothing_range = time_offset > 0
 
-        if is_in_pos_nothing_range:
-            score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, np.nan, np.nan, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.FREE, note_idx ])
-            return StdScoreData.__ADV_NOTE
+                if is_in_pos_nothing_range:
+                    score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, np.nan, np.nan, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.HOLD, note_idx ])
+                    return StdScoreData.__ADV_NOTE
+                # else return StdScoreData.__ADV_NOP (implicit)
 
         return StdScoreData.__ADV_NOP
 
