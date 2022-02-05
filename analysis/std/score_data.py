@@ -216,7 +216,7 @@ class StdScoreData():
 
 
     @staticmethod
-    def __process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
+    def __process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos):
         note_idx = visible_notes.index[0][0]
 
         # Aimpoint data
@@ -243,7 +243,7 @@ class StdScoreData():
         if aimpoint_type == StdMapData.TYPE_PRESS:   
             is_in_pos_nothing_range = time_offset > settings.pos_hit_miss_range
             if is_in_pos_nothing_range:
-                score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, np.nan, np.nan, aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.PRESS, note_idx ])
+                score_data[len(score_data)] = np.asarray([ replay_time, aimpoint_time, last_tap_pos[0], last_tap_pos[1], aimpoint_xcor, aimpoint_ycor, StdScoreData.TYPE_MISS, StdReplayData.PRESS, note_idx ])
                 return StdScoreData.__ADV_NOTE
             # else return StdScoreData.__ADV_NOP (implicit)
 
@@ -281,7 +281,7 @@ class StdScoreData():
 
 
     @staticmethod
-    def __process_press(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
+    def __process_press(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos):
         note_idx = visible_notes.index[0][0]
 
         # Aimpoint data
@@ -308,6 +308,11 @@ class StdScoreData():
             # Blank Miss check
             if settings.blank_miss:
                 score_data[len(score_data)] = np.asarray([ replay_time, np.nan, replay_xpos, replay_ypos, np.nan, np.nan, StdScoreData.TYPE_EMPTY, StdReplayData.PRESS, None ])
+            
+            # Record the position in black area the player tapped at
+            last_tap_pos[0] = replay_xpos
+            last_tap_pos[1] = replay_ypos
+            
             return StdScoreData.__ADV_NOP
 
         # Stuff after this is within circle
@@ -348,7 +353,7 @@ class StdScoreData():
 
 
     @staticmethod
-    def __process_hold(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
+    def __process_hold(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos):
         note_idx = visible_notes.index[0][0]
 
         # Aimpoint data
@@ -394,7 +399,7 @@ class StdScoreData():
 
 
     @staticmethod
-    def __process_release(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos):
+    def __process_release(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos):
         note_idx = visible_notes.index[0][0]
 
         # Aimpoint data
@@ -496,6 +501,10 @@ class StdScoreData():
         replay_data = StdReplayData.get_reduced_replay_data(replay_data, press_block=settings.press_block, release_block=settings.release_block).values
         replay_idx_max = replay_data.shape[0]
 
+        # Keeps track of the last position at which the player tapped a key
+        # Resets for every new note
+        last_tap_pos = [ np.nan, np.nan ]
+
         # Go through replay events
         while True:
             # Condition check whether all player actions in the column have been processed
@@ -525,9 +534,14 @@ class StdScoreData():
                 if replay_time <= map_time: break
 
                 # Check for any skipped notes (if replay has event gaps)
-                adv = StdScoreData.__process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos)
-                if adv == StdScoreData.__ADV_NOP: break
+                adv = StdScoreData.__process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos)
+                if adv == StdScoreData.__ADV_NOP:
+                    break
 
+                # Advancing to next note, reset last_tap_pos
+                last_tap_pos = [ np.nan, np.nan ]
+
+                # Process advancement
                 map_time = StdScoreData.__adv(map_data, map_time, adv)
 
                 # If we reached end of map
@@ -538,10 +552,17 @@ class StdScoreData():
             if len(visible_notes) == 0: continue
 
             # Process player actions
-            if replay_key == StdReplayData.FREE:    map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
-            if replay_key == StdReplayData.PRESS:   map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_press(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
-            if replay_key == StdReplayData.HOLD:    map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_hold(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
-            if replay_key == StdReplayData.RELEASE: map_time = StdScoreData.__adv(map_data, map_time, StdScoreData.__process_release(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos))
+            if replay_key == StdReplayData.FREE:    adv = StdScoreData.__process_free(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos)
+            if replay_key == StdReplayData.PRESS:   adv = StdScoreData.__process_press(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos)
+            if replay_key == StdReplayData.HOLD:    adv = StdScoreData.__process_hold(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos)
+            if replay_key == StdReplayData.RELEASE: adv = StdScoreData.__process_release(settings, score_data, visible_notes, replay_time, replay_xpos, replay_ypos, last_tap_pos)
+
+            # If advancing to next note, reset last_tap_pos
+            if adv != StdScoreData.__ADV_NOP:
+                last_tap_pos = [ np.nan, np.nan ]
+
+            # Process advancement
+            map_time = StdScoreData.__adv(map_data, map_time, adv)
 
         # Convert recorded timings and states into a pandas data
         score_data = list(score_data.values())
