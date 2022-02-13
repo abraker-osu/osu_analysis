@@ -153,7 +153,7 @@ class StdReplayData():
 
 
     @staticmethod
-    def get_reduced_replay_data(replay_data, press_block=True, release_block=False):
+    def get_reduced_replay_data(replay_data, press_block=True, release_block=False, reduce_data=False):
         """
         Filters out replay data where there are no buttons being pressed, except frames
         where button was pressed before or after the event. Removes smoke key, and merges
@@ -172,8 +172,12 @@ class StdReplayData():
         # Score data that will be filled in and returned
         new_data = {}
 
+        # Reducing replay data removes frames where there are no button transitions
+        if reduce_data:
+            replay_data = StdReplayData.__reduce_replay_data(replay_data)
+        
         # Number of things to loop through
-        replay_data = StdReplayData.__reduce_replay_data(replay_data).values
+        replay_data = replay_data.values
         num_replay_events = len(replay_data)
 
         # replay pointer
@@ -185,7 +189,8 @@ class StdReplayData():
         # Go through replay events
         while True:
             # Condition check whether all replay frames processed
-            if replay_idx >= num_replay_events: break
+            if replay_idx >= num_replay_events:
+                break
 
             # Data for this event frame
             replay_time = replay_data[replay_idx][0]    # time
