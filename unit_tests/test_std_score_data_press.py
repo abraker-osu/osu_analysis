@@ -71,7 +71,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         #   -> NOP
         for ms in range(-1000, 4000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data, ms, 1000, 1000)
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.values, ms, 1000, 1000, [0, 0])
             
             offset = ms - self.map_data.iloc[0]['time']
 
@@ -99,7 +99,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         # Scoring:  Awaiting press at slider start (100 ms @ (0, 0))
         for ms in range(-1000, 4000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data, ms, 0, 0)
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.values, ms, 0, 0, [0, 0])
             
             offset = ms - self.map_data.iloc[0]['time']
 
@@ -147,7 +147,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         # Scoring:  Awaiting hold at scorepoint (350 ms @ (100, 0))
         for ms in range(-1000, 4000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[1:], ms, 1000, 1000)
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[1:].values, ms, 1000, 1000, [0, 0])
             
             offset = ms - self.map_data.iloc[1]['time']
 
@@ -175,7 +175,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         # Scoring:  Awaiting hold at scorepoint (350 ms @ (100, 0))
         for ms in range(-1000, 4000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[1:], ms, 100, 0)
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[1:].values, ms, 100, 0, [0, 0])
             
             offset = ms - self.map_data.iloc[1]['time']
 
@@ -203,7 +203,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         # Scoring:  Awaiting press at hitcircle (1000 ms @ (500, 500))
         for ms in range(-1000, 4000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:], ms, 1000, 1000)
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:].values, ms, 1000, 1000, [0, 0])
             
             offset = ms - self.map_data.iloc[4]['time']
 
@@ -231,7 +231,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         # Scoring:  Awaiting press at hitcircle (1000 ms @ (500, 500))
         for ms in range(-1000, 4000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:], ms, 1000, 1000)
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:].values, ms, 1000, 1000, [0, 0])
             
             offset = ms - self.map_data.iloc[4]['time']
 
@@ -259,7 +259,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         # Scoring:  Awaiting press at hitcircle (1000 ms @ (500, 500))
         for ms in range(-1000, 4000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:], ms, 500, 500)
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:].values, ms, 500, 500, [0, 0])
             
             offset = ms - self.map_data.iloc[4]['time']
 
@@ -308,7 +308,7 @@ class TestStdScoreDataPress(unittest.TestCase):
 
         for ms in range(-1000, 4000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[8:], ms, 0, 0)
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[8:].values, ms, 0, 0, [0, 0])
             
             offset = ms - self.map_data.iloc[8]['time']
 

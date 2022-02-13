@@ -1,4 +1,5 @@
 import unittest
+from numpy import require
 import pandas as pd
 
 from analysis.std.map_data import StdMapData
@@ -40,351 +41,209 @@ class TestStdScoreDataFree(unittest.TestCase):
         pass
 
 
-    def test_slider_start_misaim(self):
-        settings = StdScoreData.Settings()
-        
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
-
-        # Time:     0 ms -> 3000 ms
-        # Location: Blank area (1000, 1000)
-        # Scoring:  Awaiting press at slider start (100 ms @ (0, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data, ms, 500, 500)
-            
-            offset = ms - self.map_data.iloc[0]['time']
-
-            if offset <= settings.pos_hit_miss_range:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
-
-
-    def test_slider_start_nomisaim(self):
+    def test_slider_start(self):
         settings = StdScoreData.Settings()
 
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
+        for require_tap_press in [True, False]:
+            for require_aim_press in [True, False]:
+                for miss_aim in [True, False]:
+                    cursor_xy = [500, 500] if miss_aim else [0, 0]
 
-        # Time:     0 ms -> 3000 ms
-        # Location: At slider start (0, 0)
-        # Scoring:  Awaiting press at slider start (100 ms @ (0, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data, ms, 0, 0)
+                    settings.require_tap_press = require_tap_press
+                    settings.require_aim_press = require_aim_press
+                    
+                    # Set hitwindow ranges to what these tests have been written for
+                    settings.neg_hit_miss_range = 450    # ms point of early miss window
+                    settings.neg_hit_range      = 300    # ms point of early hit window
+                    settings.pos_hit_range      = 300    # ms point of late hit window
+                    settings.pos_hit_miss_range = 450    # ms point of late miss window
+
+                    # Time:     0 ms -> 3000 ms
+                    # Scoring:  Awaiting press at slider start (100 ms @ (0, 0))
+                    for ms in range(0, 3000):
+                        score_data = {}
+                        
+                        adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.values, ms, cursor_xy[0], cursor_xy[1], [0, 0])
+                        offset = ms - self.map_data.iloc[0]['time']
+
+                        def proc_required():
+                            # Regardless of whether aim is required, a tap is required and this got a free instead
+                            if offset <= settings.pos_hit_miss_range:
+                                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
+                                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
+                            else:
+                                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
+                                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
+
+                        def proc_required_non():
+                            if offset < 0:
+                                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
+                                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
+                            else:
+                                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
+                                self.assertEqual(score_data[0][6], StdScoreData.TYPE_HITP, f'Offset: {offset} ms')
+ 
+                        if not require_aim_press and not require_tap_press:
+                            # No need to tap or aim; Automatic freebie
+                            proc_required_non()
+                            continue
+
+                        if not require_aim_press and require_tap_press:
+                            proc_required()
+                            continue
+                        
+                        if require_aim_press and not require_tap_press:
+                            if miss_aim:
+                                proc_required()
+                            else:
+                                proc_required_non()
+                            continue
             
-            offset = ms - self.map_data.iloc[0]['time']
-
-            if offset <= settings.pos_hit_miss_range:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
+                        if require_aim_press and require_tap_press:
+                            if miss_aim:
+                                proc_required()
+                            else:
+                                proc_required()
+                            continue
 
 
-    def test_slider_aimpoint_misaim__missaim_release(self):
+    def test_slider_hold(self):
         settings = StdScoreData.Settings()
-        settings.recoverable_missaim = True
-        settings.recoverable_release = True
 
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
+        for require_tap_hold in [True, False]:
+            for require_aim_hold in [True, False]:
+                for recoverable_missaim in [True, False]:
+                    for recoverable_release in [True, False]:
+                        for slider_miss in [True, False]:
+                            for miss_aim in [True, False]:
+                                cursor_xy = [1000, 1000] if miss_aim else [0, 0]
 
-        # Time:     0 ms -> 3000 ms
-        # Location: Blank area (1000, 1000)
-        # Scoring:  Awaiting hold at slider aimpoint (350 ms @ (100, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[1:], ms, 1000, 1000)
-            
-            offset = ms - self.map_data.iloc[1]['time']
+                                settings.require_tap_hold    = require_tap_hold
+                                settings.require_aim_hold    = require_aim_hold
 
-            if offset <= settings.pos_hld_range:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
+                                settings.recoverable_missaim = recoverable_missaim
+                                settings.recoverable_release = recoverable_release
+
+                                settings.miss_slider         = slider_miss
+                                
+                                # Set hitwindow ranges to what these tests have been written for
+                                self.neg_hld_range = 0  
+                                self.pos_hld_range = 1000
+
+                                # Time:     0 ms -> 3000 ms
+                                # Scoring:  Awaiting hold at slider aimpoint (350 ms @ (100, 0))
+                                for ms in range(0, 3000):
+                                    score_data = {}
+
+                                    adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[1:].values, ms, cursor_xy[0], cursor_xy[1], [0, 0])
+                                    offset = ms - self.map_data.iloc[1]['time']
+
+                                    expected_miss_adv = StdScoreData._StdScoreData__ADV_NOTE if slider_miss else StdScoreData._StdScoreData__ADV_AIMP
+                                    expected_late_timing = settings.pos_hld_range if recoverable_release else 0
+
+                                    def proc_required():
+                                        if offset <= expected_late_timing:
+                                            self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms  recoverable_missaim: {recoverable_missaim}  recoverable_release: {recoverable_release}   expected_late_timing: {expected_late_timing}')
+                                            self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
+                                        else:
+                                            self.assertEqual(adv, expected_miss_adv, f'Offset: {offset} ms  recoverable_missaim: {recoverable_missaim}  recoverable_release: {recoverable_release}   expected_late_timing: {expected_late_timing}')
+                                            self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
+
+                                    def proc_required_non():
+                                        if offset < 0:
+                                            self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
+                                            self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
+                                        else:
+                                            self.assertEqual(adv, StdScoreData._StdScoreData__ADV_AIMP, f'Offset: {offset} ms')
+                                            self.assertEqual(score_data[0][6], StdScoreData.TYPE_AIMH, f'Offset: {offset} ms')
+
+                                    if not require_aim_hold and not require_tap_hold:
+                                        # No need to tap or aim; Automatic freebie
+                                        proc_required_non()
+                                        continue
+
+                                    if not require_aim_hold and require_tap_hold:
+                                        proc_required()
+                                        continue
+                                    
+                                    if require_aim_hold and not require_tap_hold:
+                                        if miss_aim:
+                                            proc_required()
+                                        else:
+                                            proc_required_non()
+                                        continue
+                        
+                                    if require_aim_hold and require_tap_hold:
+                                        if miss_aim:
+                                            proc_required()
+                                        else:
+                                            proc_required()
+                                        continue
 
 
-    def test_slider_aimpoint_misaim__missaim_norelease(self):
+    def test_slider_release(self):
         settings = StdScoreData.Settings()
-        settings.recoverable_missaim = True
-        settings.recoverable_release = False
 
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
+        for require_tap_release in [True, False]:
+            for require_aim_release in [True, False]:
+                for miss_aim in [True, False]:
+                    cursor_xy = [1000, 1000] if miss_aim else [300, 0]
 
-        # Time:     0 ms -> 3000 ms
-        # Location: Blank area (1000, 1000)
-        # Scoring:  Awaiting hold at slider aimpoint (350 ms @ (100, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[1:], ms, 1000, 1000)
+                    settings.require_tap_release = require_tap_release
+                    settings.require_aim_release = require_aim_release
+                    
+                    # Set hitwindow ranges to what these tests have been written for
+                    settings.neg_rel_miss_range = 450    # ms point of early miss window
+                    settings.neg_rel_range      = 300    # ms point of early release window
+                    settings.pos_rel_range      = 300    # ms point of late release window
+                    settings.pos_rel_miss_range = 450    # ms point of late miss window
+                    
+                    # Time:     0 ms -> 3000 ms
+                    # Scoring:  Awaiting release at slider end (750 ms @ (300, 0))
+                    for ms in range(0, 3000):
+                        score_data = {}
+
+                        adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[3:].values, ms, cursor_xy[0], cursor_xy[1], [0, 0])
+                        offset = ms - self.map_data.iloc[3]['time']
+
+                        def proc_required():
+                            if offset <= settings.pos_rel_miss_range:
+                                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
+                                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
+                            else:
+                                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
+                                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
+
+                        def proc_required_non():
+                            if offset < 0:
+                                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
+                                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')    
+                            else:
+                                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
+                                self.assertEqual(score_data[0][6], StdScoreData.TYPE_HITR, f'Offset: {offset} ms') 
+
+                        if not require_aim_release and not require_tap_release:
+                            # No need to tap or aim; Automatic freebie
+                            proc_required_non()
+                            continue
+
+                        if not require_aim_release and require_tap_release:
+                            proc_required()
+                            continue
+                        
+                        if require_aim_release and not require_tap_release:
+                            if miss_aim:
+                                proc_required()
+                            else:
+                                proc_required_non()
+                            continue
             
-            offset = ms - self.map_data.iloc[1]['time']
-
-            if offset <= 0:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
-
-
-    def test_slider_aimpoint_misaim__nomissaim_release(self):
-        settings = StdScoreData.Settings()
-        settings.recoverable_missaim = False
-        settings.recoverable_release = True
-
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
-
-        # Time:     0 ms -> 3000 ms
-        # Location: Blank area (1000, 1000)
-        # Scoring:  Awaiting hold at slider aimpoint (350 ms @ (100, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[1:], ms, 1000, 1000)
-            
-            offset = ms - self.map_data.iloc[1]['time']
-
-            if offset <= 0:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
-
-
-    def test_slider_aimpoint_nomisaim__nomissaim_release(self):
-        settings = StdScoreData.Settings()
-        settings.recoverable_missaim = False
-        settings.recoverable_release = True
-
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
-
-        # Time:     0 ms -> 3000 ms
-        # Location: At slider aimpoint (100, 0)
-        # Scoring:  Awaiting hold at slider aimpoint (350 ms @ (100, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[1:], ms, 100, 0)
-            
-            offset = ms - self.map_data.iloc[1]['time']
-
-            if offset <= settings.pos_hld_range:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
-
-
-    def test_slider_aimpoint_nomisaim__nomissaim_norelease(self):
-        settings = StdScoreData.Settings()
-        settings.recoverable_missaim = False
-        settings.recoverable_release = False
-
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
-
-        # Time:     0 ms -> 3000 ms
-        # Location: At slider aimpoint (100, 0)
-        # Scoring:  Awaiting hold at slider aimpoint (350 ms @ (100, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[1:], ms, 100, 0)
-            
-            offset = ms - self.map_data.iloc[1]['time']
-
-            if offset <= 0:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
-
-
-    def test_slider_end_misaim__noreleasewindow(self):
-        settings = StdScoreData.Settings()
-        settings.release_window = False
-
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
-
-        # Time:     0 ms -> 3000 ms
-        # Location: Blank area (1000, 1000)
-        # Scoring:  Awaiting release at slider end (750 ms @ (300, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[3:], ms, 1000, 1000)
-            
-            offset = ms - self.map_data.iloc[3]['time']
-
-        self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-        self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-
-
-    def test_slider_end_misaim__releasewindow(self):
-        settings = StdScoreData.Settings()
-        settings.release_window = True
-
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
-
-        # Time:     0 ms -> 3000 ms
-        # Location: Blank area (1000, 1000)
-        # Scoring:  Awaiting release at slider end (750 ms @ (300, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[3:], ms, 1000, 1000)
-            
-            offset = ms - self.map_data.iloc[3]['time']
-
-            if offset <= settings.pos_rel_miss_range:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
-
-
-    def test_slider_end_nomisaim__noreleasewindow(self):
-        settings = StdScoreData.Settings()
-        settings.release_window = False
-
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
-
-        # Time:     0 ms -> 3000 ms
-        # Location: At slider end (300, 0)
-        # Scoring:  Awaiting release at slider end (750 ms @ (300, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[3:], ms, 300, 0)
-            
-            offset = ms - self.map_data.iloc[3]['time']
-
-        self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-        self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-
-
-    def test_slider_end_nomisaim__releasewindow(self):
-        settings = StdScoreData.Settings()
-        settings.release_window = True
-
-        # Set hitwindow ranges to what these tests have been written for
-        settings.pos_hit_range      = 300    # ms point of late hit window
-        settings.neg_hit_range      = 300    # ms point of early hit window
-        settings.pos_hit_miss_range = 450    # ms point of late miss window
-        settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
-        settings.pos_rel_range       = 500   # ms point of late release window
-        settings.neg_rel_range       = 500   # ms point of early release window
-        settings.pos_rel_miss_range  = 1000  # ms point of late release window
-        settings.neg_rel_miss_range  = 1000  # ms point of early release window
-
-        # Time:     0 ms -> 3000 ms
-        # Location: At slider end (300, 0)
-        # Scoring:  Awaiting release at slider end (750 ms @ (300, 0))
-        for ms in range(0, 3000):
-            score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[3:], ms, 300, 0)
-            
-            offset = ms - self.map_data.iloc[3]['time']
-
-            if offset <= settings.pos_rel_miss_range:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
-                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
-            else:
-                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
-                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
+                        if require_aim_release and require_tap_release:
+                            if miss_aim:
+                                proc_required()
+                            else:
+                                proc_required()
+                            continue
 
 
     def test_circle_misaim(self):
@@ -406,7 +265,7 @@ class TestStdScoreDataFree(unittest.TestCase):
         # Scoring:  Awaiting press at 1st hitcircle (1000 ms @ (500, 500))
         for ms in range(0, 3000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[4:], ms, 1000, 1000)
+            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[4:].values, ms, 1000, 1000, [0, 0])
             
             offset = ms - self.map_data.iloc[4]['time']
 
@@ -437,7 +296,7 @@ class TestStdScoreDataFree(unittest.TestCase):
         # Scoring:  Awaiting press at 1st hitcircle (1000 ms @ (500, 500))
         for ms in range(0, 3000):
             score_data = {}
-            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[4:], ms, 500, 500)
+            adv = StdScoreData._StdScoreData__process_free(settings, score_data, self.map_data.iloc[4:].values, ms, 500, 500, [0, 0])
             
             offset = ms - self.map_data.iloc[4]['time']
 
