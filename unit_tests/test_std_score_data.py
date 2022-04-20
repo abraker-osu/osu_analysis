@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+import numpy as np
 
 from beatmap_reader import BeatmapIO
 from replay_reader import ReplayIO
@@ -232,6 +233,39 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 2002)
 
 
+    def test_relax_map(self):
+        settings = StdScoreData.Settings()
+        settings.neg_hit_miss_range = 100   # ms point of early miss window
+        settings.neg_hit_range      = 100   # ms point of early hit window
+        settings.pos_hit_range      = 100   # ms point of late hit window
+        settings.pos_hit_miss_range = 100   # ms point of late miss window
+
+        settings.require_tap_press   = False
+        settings.require_tap_hold    = False
+        settings.require_tap_release = False
+
+        beatmap = BeatmapIO.open_beatmap('unit_tests/maps/osu/test/relax_map.osu')
+        map_data = StdMapData.get_map_data(beatmap)
+
+        replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test/relax_map_fc.osr')
+        replay_data = StdReplayData.get_replay_data(replay)
+        score_data = StdScoreData.get_score_data(replay_data, map_data, settings)
+
+        # No misses in this play
+        self.assertTrue(not any(score_data['type'] == StdScoreData.TYPE_MISS))
+
+        beatmap = BeatmapIO.open_beatmap('unit_tests/maps/osu/test/relax_map2.osu')
+        map_data = StdMapData.get_map_data(beatmap)
+
+        replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test/relax_map2_fc.osr')
+        replay_data = StdReplayData.get_replay_data(replay)
+        score_data = StdScoreData.get_score_data(replay_data, map_data, settings)
+
+        # This play has 1 miss aim
+        miss_count = np.count_nonzero(score_data['type'].values == StdScoreData.TYPE_MISS)
+        self.assertTrue(miss_count == 1)
+
+    """
     def test_process_press(self):
         settings = StdScoreData.Settings()
         pass
@@ -256,13 +290,25 @@ class TestStdScoreData(unittest.TestCase):
         replay_data = StdReplayData.get_replay_data(replay)
         score_data = StdScoreData.get_score_data(replay_data, map_data, settings)
 
+        pd.set_option('display.max_rows', replay_data.shape[0])
+
+        #print(replay_data[:500])
+
+        assert_error_msg = \
+            f'''
+            Misses:
+            {score_data["type"].values == StdScoreData.TYPE_MISS}
+
+            Data:
+            {score_data}
+            '''
+
         # All scores are hits in this play
-        self.assertTrue(not any(score_data['type'] == StdScoreData.TYPE_MISS), f'{score_data["type"].values == StdScoreData.TYPE_MISS}')
+        self.assertTrue(not any(score_data['type'] == StdScoreData.TYPE_MISS), assert_error_msg)
 
         #replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test/best_play.osr')
 
 
-    '''
     def test_get_score_data(self):
         # TODO: This replay has cursor pressing and wander in random parts sometimes making a hit
         replay = ReplayIO.open_replay('unit_tests/replays/osu/abraker - aim_miss [score_test] (2019-06-07) Osu.osr')
@@ -411,8 +457,9 @@ class TestStdScoreData(unittest.TestCase):
 
         tap_offset_mean = StdScoreData.tap_offset_mean(score_data)
         self.assertEqual(tap_offset_mean, 0)
+    """
 
-
+    '''
     def test_tap_offset_var(self):
         replay = ReplayIO.open_replay('unit_tests/replays/osu/osu! - perfect_test [score_test] (2019-06-07) Osu.osr')
         replay_data = StdReplayData.get_replay_data(replay)
