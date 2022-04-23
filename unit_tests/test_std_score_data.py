@@ -14,9 +14,7 @@ from analysis.std.score_data import StdScoreData
 class TestStdScoreData(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\osu\\test\\score_test.osu')
-        
+    def setUpClass(cls):       
         map_data = [ 
             pd.DataFrame(
             [
@@ -233,6 +231,27 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 2002)
 
 
+    def test_nm_map(self):
+        settings = StdScoreData.Settings()
+        settings.neg_hit_miss_range = 100   # ms point of early miss window
+        settings.neg_hit_range      = 100   # ms point of early hit window
+        settings.pos_hit_range      = 100   # ms point of late hit window
+        settings.pos_hit_miss_range = 100   # ms point of late miss window
+
+        beatmap = BeatmapIO.open_beatmap('unit_tests/maps/osu/test/score_test_basic_AR8,OD5,CS2.osu')
+        map_data = StdMapData.get_map_data(beatmap)
+
+        # The map is SS'd in this replay
+        replay = ReplayIO.open_replay('unit_tests/replays/osu/score_test_new/score_test_basic_AR8,OD5,CS2_7,1,0,0,0,0,100p.osr')
+        replay_data = StdReplayData.get_replay_data(replay)
+        score_data = StdScoreData.get_score_data(replay_data, map_data)
+
+        offsets = score_data['map_t'] - score_data['replay_t']
+
+        self.assertTrue(not any(score_data['type'] == StdScoreData.TYPE_MISS))
+        self.assertTrue(all(abs(offsets) <= 50))
+
+        
     def test_relax_map(self):
         settings = StdScoreData.Settings()
         settings.neg_hit_miss_range = 100   # ms point of early miss window
