@@ -754,8 +754,6 @@ class StdScoreData():
                 if adv == StdScoreData.__ADV_NOP:
                     break
 
-                print('  free:', replay_time, map_time, adv)
-
                 # Advancing to next note, reset last_tap_pos
                 last_tap_pos = [ np.nan, np.nan ]
 
