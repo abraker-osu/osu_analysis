@@ -211,6 +211,49 @@ class TestStdScoreDataPress(unittest.TestCase):
             self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
 
 
+    def test_circle_press_missaim__noblank__100window(self):
+        settings = StdScoreData.Settings()
+
+        # Set hitwindow ranges to what these tests have been written for
+        settings.pos_hit_range      = 100    # ms point of late hit window
+        settings.neg_hit_range      = 100    # ms point of early hit window
+        settings.pos_hit_miss_range = 100    # ms point of late miss window
+        settings.neg_hit_miss_range = 100    # ms point of early miss window
+
+        # Time:     -1000 ms -> 4000 ms
+        # Location: On hit circle (500, 500)
+        # Scoring:  Awaiting press at hitcircle (1000 ms @ (500, 500))
+        for ms in range(-1000, 4000):
+            score_data = {}
+            adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:].values, ms, 500, 500, [0, 0])
+            
+            offset = ms - self.map_data.iloc[4]['time']
+
+            if offset <= -settings.neg_hit_miss_range:
+                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
+                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
+
+            elif -settings.neg_hit_miss_range < offset <= -settings.neg_hit_range:
+                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
+                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
+
+            elif -settings.neg_hit_range < offset <= settings.pos_hit_range:
+                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
+                self.assertEqual(score_data[0][6], StdScoreData.TYPE_HITP, f'Offset: {offset} ms')
+                self.assertEqual(score_data[0][0] - score_data[0][1], offset, f'Offset: {offset} ms')
+
+            elif settings.pos_hit_range < offset <= settings.pos_hit_miss_range:
+                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOTE, f'Offset: {offset} ms')
+                self.assertEqual(score_data[0][6], StdScoreData.TYPE_MISS, f'Offset: {offset} ms')
+
+            elif settings.pos_hit_miss_range < offset:
+                self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
+                self.assertEqual(len(score_data), 0, f'Offset: {offset} ms')
+
+            else:
+                self.fail('Testing error!')
+
+
     def test_circle_press_missaim__blank(self):
         settings = StdScoreData.Settings()
         settings.blank_miss = True
