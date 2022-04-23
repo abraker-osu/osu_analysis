@@ -742,7 +742,7 @@ class StdScoreData():
 
                 if replay_time < map_time - earliest_window_range:
                     # Replay time needs to catch up to the current map time
-                    # Unil within hit window processing range or notes are visible
+                    # Until within hit window processing range or notes are visible
                     break
 
                 # In theory, should never be 0
@@ -754,6 +754,8 @@ class StdScoreData():
                 if adv == StdScoreData.__ADV_NOP:
                     break
 
+                print('  free:', replay_time, map_time, adv)
+
                 # Advancing to next note, reset last_tap_pos
                 last_tap_pos = [ np.nan, np.nan ]
 
@@ -762,16 +764,29 @@ class StdScoreData():
 
             # replay_time is considered to be the time experienced by the player
             # At this time the player will be able to `ar_ms` ahead of current time
-            start_time = replay_time
-            end_time   = replay_time + settings.ar_ms
+            #start_time = replay_time
+            #end_time   = replay_time + settings.ar_ms
 
             # Get visible notes at current time
-            visible_notes_select = (start_time <= map_times) & (map_times <= end_time)
-            if np.count_nonzero(visible_notes_select) == 0:
+            #visible_notes_select = (start_time <= map_times) & (map_times <= end_time)
+            #any_notes_visible = (np.count_nonzero(visible_notes_select) == 0)
+
+            #if any_notes_visible or (replay_time > (map_time + latest_window_range)):
+            #    # Nothing to process
+            #    continue
+
+            #visible_notes = map_data.values[visible_notes_select]
+            
+            # Select score points that occur after current map time and
+            # that are within the current replay time's hit window range
+            pending_notes_select = (map_time <= map_times) & \
+                (((replay_time - earliest_window_range) <= map_times) & (map_times <= (replay_time + latest_window_range)))
+
+            if np.count_nonzero(pending_notes_select) == 0:
                 # Nothing to process
                 continue
 
-            visible_notes = map_data.values[visible_notes_select]
+            visible_notes = map_data.values[pending_notes_select]
 
             # Interpolate replay data
             #aimpoint_time = visible_notes[0, StdMapData.IDX_TIME]
