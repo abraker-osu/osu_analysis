@@ -159,8 +159,11 @@ class StdScoreData():
 
             """
             If True, missing a slider aimpoint misses the rest of the slider
+
+            NOTE: If score data is used for difficulty calculation, setting this to `True`
+            will result in bad calculations when sliders are missed
             """
-            self.miss_slider = True
+            self.miss_slider = False
 
             """
             If True, press miss range is processed. Otherwise, it's impossible to miss a press
