@@ -20,7 +20,6 @@ pip install git+https://github.com/abraker-osu/osu_analysis.git#egg=osu_analysis
 ```py
 from replay_reader import ReplayIO
 
-
 if __name__ == '__main__':
     replay = ReplayIO.open_replay('LeaF - I (Maddy) [Terror] replay_0.osr')
     print(replay.get_name())
@@ -106,7 +105,7 @@ hitobject aimpoint
 [348 rows x 5 columns]
 ```
 
-### Scpre analysis
+### Score analysis
 ```py
 from replay_reader import ReplayIO
 from beatmap_reader import BeatmapIO
