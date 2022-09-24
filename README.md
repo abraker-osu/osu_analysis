@@ -140,3 +140,4 @@ Output:
 
 [108 rows x 8 columns]
 ```
+<sub><sup>Note: The map and replay used in this example are from different maps, which is why all types are `3.0` - representing misses.</sup></sub>
