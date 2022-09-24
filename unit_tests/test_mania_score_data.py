@@ -4,8 +4,8 @@ import numpy as np
 from beatmap_reader import BeatmapIO
 from replay_reader import ReplayIO
 
-from analysis.mania.action_data import ManiaActionData
-from analysis.mania.score_data import ManiaScoreData
+from osu_analysis.mania.action_data import ManiaActionData
+from osu_analysis.mania.score_data import ManiaScoreData
 
 
 
@@ -143,6 +143,18 @@ class TestManiaScoreData(unittest.TestCase):
         test(
             'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
             'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
+            press_release=0
+        )
+
+        test(
+            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr', 
+            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania.osr',
+            press_release=1
+        )
+
+        test(
+            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr', 
+            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania.osr',
             press_release=0
         )
 

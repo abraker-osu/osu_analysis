@@ -2,8 +2,8 @@ import unittest
 
 from beatmap_reader import BeatmapIO
 
-from analysis.std.map_data import StdMapData
-from analysis.std.map_metrics import StdMapMetrics
+from osu_analysis.std.map_data import StdMapData
+from osu_analysis.std.map_metrics import StdMapMetrics
 
 
 

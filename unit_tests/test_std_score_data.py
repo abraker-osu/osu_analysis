@@ -1,13 +1,13 @@
 import unittest
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from beatmap_reader import BeatmapIO
 from replay_reader import ReplayIO
 
-from analysis.std.map_data import StdMapData
-from analysis.std.replay_data import StdReplayData
-from analysis.std.score_data import StdScoreData
+from osu_analysis.std.map_data import StdMapData
+from osu_analysis.std.replay_data import StdReplayData
+from osu_analysis.std.score_data import StdScoreData
 
 
 
