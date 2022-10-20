@@ -1,8 +1,8 @@
 import unittest
 import numpy as np
 
-from analysis.mania.action_data import ManiaActionData
-from analysis.mania.score_data import ManiaScoreData
+from osu_analysis.mania.action_data import ManiaActionData
+from osu_analysis.mania.score_data import ManiaScoreData
 
 
 

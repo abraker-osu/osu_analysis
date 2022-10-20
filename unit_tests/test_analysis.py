@@ -1,6 +1,6 @@
 import unittest
 
-from analysis.mania.action_data import ManiaActionData
+from osu_analysis.mania.action_data import ManiaActionData
 
 from beatmap_reader import BeatmapIO
 from replay_reader import ReplayIO

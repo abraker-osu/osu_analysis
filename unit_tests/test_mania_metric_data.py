@@ -2,8 +2,8 @@ import unittest
 import numpy as np
 
 from beatmap_reader import BeatmapIO
-from analysis.mania.action_data import ManiaActionData
-from analysis.mania.map_metrics import ManiaMapMetrics
+from osu_analysis.mania.action_data import ManiaActionData
+from osu_analysis.mania.map_metrics import ManiaMapMetrics
 
 
 

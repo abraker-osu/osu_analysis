@@ -3,10 +3,10 @@ import unittest
 from osu.local.beatmap.beatmapIO import BeatmapIO
 from osu.local.replay.replayIO import ReplayIO
 
-from analysis.osu.std.map_data import StdMapData
-from analysis.osu.std.replay_data import StdReplayData
-from analysis.osu.std.score_data import StdScoreData
-from analysis.osu.std.score_metrics import StdScoreMetrics
+from osu_analysis.osu.std.map_data import StdMapData
+from osu_analysis.osu.std.replay_data import StdReplayData
+from osu_analysis.osu.std.score_data import StdScoreData
+from osu_analysis.osu.std.score_metrics import StdScoreMetrics
 
 
 
