@@ -686,7 +686,7 @@ class StdScoreData():
         replay_idx = 0
 
         # Filter out single note release points
-        filter_single_release = np.ones(map_data.shape[0], dtype=bool)
+        filter_single_release = np.ones(map_data.shape[0], dtype=np.bool8)
         filter_single_release[1:] = ~( \
             (map_data['type'].values[:-1] == StdMapData.TYPE_PRESS) &             \
             (map_data['type'].values[1:] == StdMapData.TYPE_RELEASE) &            \

@@ -141,7 +141,7 @@ class ManiaMapMetrics():
         numpy.array
         action_data mask of actions detected
         """
-        ret = np.zeros((action_data.shape[0], ), dtype=bool)
+        ret = np.zeros((action_data.shape[0], ), dtype=np.bool8)
 
         # If there are no hold notes present, then the entire mask should be 0
         hold_mask = (action_data[:, ManiaActionData.IDX_ETIME] - action_data[:, ManiaActionData.IDX_STIME]) > 1
@@ -165,7 +165,7 @@ class ManiaMapMetrics():
             
             # Used to operate every note on every other note
             a, b = np.meshgrid(idx, idx)
-            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=bool)
+            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=np.bool8)
 
             # Checks if note b's start time is between note a's start and end times 
             data &= (ts[a] < ts[b]) & (ts[b] < te[a])
@@ -197,7 +197,7 @@ class ManiaMapMetrics():
         numpy.array
         action_data mask of actions detected
         """
-        ret = np.zeros((action_data.shape[0], ), dtype=bool)
+        ret = np.zeros((action_data.shape[0], ), dtype=np.bool8)
 
         # If there are no hold notes present, then the entire mask should be 0
         hold_mask = (action_data[:, ManiaActionData.IDX_ETIME] - action_data[:, ManiaActionData.IDX_STIME]) > 1
@@ -224,7 +224,7 @@ class ManiaMapMetrics():
 
             # Used to operate every note on every other note
             a, b = np.meshgrid(idx, idx)
-            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=bool)
+            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=np.bool8)
 
             # Checks if note b's end time is between note a's start and end times 
             data &= (ts[a] < te[b]) & (te[b] < te[a])
@@ -272,7 +272,7 @@ class ManiaMapMetrics():
         numpy.array
         action_data An array consiting of 1 if note is hold note and 0 if note is single note
         """
-        ret = np.zeros((action_data.shape[0], ), dtype=bool)
+        ret = np.zeros((action_data.shape[0], ), dtype=np.bool8)
 
         # These indices will be uses as references as to where place data in ret
         idx_ref = np.arange(action_data.shape[0])
@@ -291,7 +291,7 @@ class ManiaMapMetrics():
 
             # Used to operate every note on every other note
             a, b = np.meshgrid(idx, idx, sparse=True)
-            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=bool)
+            data = np.ones((idx.shape[0], idx.shape[0], ), dtype=np.bool8)
 
             # Check if note A ends before or at when note B ends
             data &= te[a] <= te[b]
@@ -417,7 +417,7 @@ class ManiaMapMetrics():
         numpy.array
         mask_data mask of notes detected
         """
-        ret = np.zeros((action_data.shape[0], ), dtype=bool)
+        ret = np.zeros((action_data.shape[0], ), dtype=np.bool8)
 
         # Filter out non hold notes
         hold_mask = (action_data[:, ManiaActionData.IDX_ETIME] - action_data[:, ManiaActionData.IDX_STIME]) > 1
@@ -446,7 +446,7 @@ class ManiaMapMetrics():
         chunk = 300               # 1 chunk = 300 notes = 300x300x300x4 bytes = ~103 Mb
         chunk += int(chunk*0.5)   # + 50% overlap between chunks = ~348 Mb
 
-        full_data = np.ones((chunk, chunk, chunk), dtype=bool)
+        full_data = np.ones((chunk, chunk, chunk), dtype=np.bool8)
 
         # Iterate though the chunks
         for i in range(0, action_data.shape[0], chunk):
@@ -516,7 +516,7 @@ class ManiaMapMetrics():
         numpy.array
         mask_data mask of notes detected
         """
-        ret = np.zeros((action_data.shape[0], ), dtype=bool)
+        ret = np.zeros((action_data.shape[0], ), dtype=np.bool8)
 
         # Convenience vars
         ts = action_data[:, ManiaActionData.IDX_STIME]  # note start times

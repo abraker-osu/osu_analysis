@@ -89,7 +89,7 @@ class StdReplayData():
             hold_state = is_key_hold
 
         # Set releases if last timing still has a press active
-        press_select = np.zeros(8, dtype=bool)
+        press_select = np.zeros(8, dtype=np.bool8)
         press_select[3:] = (replay_data[-2, 3:] == StdReplayData.PRESS)
         replay_data[-1, press_select] = StdReplayData.RELEASE
 
