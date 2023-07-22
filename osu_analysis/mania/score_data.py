@@ -37,7 +37,7 @@ class ManiaScoreData():
     IDX_MAP_IDX  = 3
 
     # TODO: deprecate
-    DATA_OFFSET  = 0 
+    DATA_OFFSET  = 0
     DATA_TYPE    = 1
     DATA_MAP_IDX = 2
 
@@ -51,31 +51,97 @@ class ManiaScoreData():
     pos_rel_miss_range  = 500  # ms point of the far end late release window
     neg_rel_miss_range  = 500  # ms point of the far end early release window
 
-    # Disables hitting next note too early. If False, the neg_miss_range of the current note is 
+    # Disables hitting next note too early. If False, the neg_miss_range of the current note is
     # overridden to extend to the previous note's pos_hit_range boundary.
     notelock = True
 
-    # Overrides the miss and hit windows to correspond to spacing between notes. If True then all 
-    # the ranges are are overridden to be split up in 1/4th sections relative to the distance between 
+    # Overrides the miss and hit windows to correspond to spacing between notes. If True then all
+    # the ranges are are overridden to be split up in 1/4th sections relative to the distance between
     # current and next notes
     dynamic_window = False
 
-    # Enables missing in blank space. If True, the Nothing window behaves like the miss window, but the 
+    # Enables missing in blank space. If True, the Nothing window behaves like the miss window, but the
     # iterator does not go to the next note.
     blank_miss = False
 
     # If True, remove release miss window for sliders. This allows to hit sliders and release them whenever
     lazy_sliders = False
 
-    # There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all 
-    # overlapped miss parts are processed for one key event. If False, each overlapped miss part is 
+    # There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all
+    # overlapped miss parts are processed for one key event. If False, each overlapped miss part is
     # processed for each individual key event.
     overlap_miss_handling = False
 
-    # There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all 
-    # overlapped hit parts are processed for one key event. If False, each overlapped hit part is 
+    # There are cases for which parts of the hitwindow of multiple notes may overlap. If True, all
+    # overlapped hit parts are processed for one key event. If False, each overlapped hit part is
     # processed for each individual key event.
     overlap_hit_handling  = False
+
+    class Settings():
+
+        def __setattr__(self, key, value):
+            try:
+                if not self.__is_frozen:
+                    object.__setattr__(self, key, value)
+                    return
+            except AttributeError:
+                object.__setattr__(self, '_Settings__is_frozen', False)
+                object.__setattr__(self, key, value)
+                return
+
+            if not hasattr(self, key):
+                raise KeyError( f'Setting {key} does not exist!')
+
+            if key == '__is_frozen':
+                raise KeyError( f'__is_frozen is value locked!')
+
+            object.__setattr__(self, key, value)
+
+
+        def __init__(self):
+            self.__is_frozen = False
+
+            '''
+            The following must be true:
+                0 < pos_hit_range < pos_hit_miss_range < inf
+                0 < neg_hit_range < neg_hit_miss_range < inf
+
+            Hit processing occurs:
+                -neg_hit_range -> pos_hit_range
+
+            Miss processing occurs:
+                -neg_hit_miss_range -> neg_hit_range
+                pos_hit_range -> pos_hit_miss_range
+
+            No processing occurs:
+                -inf -> -neg_hit_miss_range
+                pos_hit_miss_range -> inf
+            '''
+
+            """
+            Press window
+            """
+            self.neg_hit_miss_range = 200   # ms point of early miss window
+            self.neg_hit_range      = 100   # ms point of early hit window
+            self.pos_hit_range      = 100   # ms point of late hit window
+            self.pos_hit_miss_range = 200   # ms point of late miss window
+
+            """
+            Release window
+            """
+            self.neg_rel_miss_range = 500  # ms point of early release miss window
+            self.neg_rel_range      = 300  # ms point of early release window
+            self.pos_rel_range      = 300  # ms point of late release window
+            self.pos_rel_miss_range = 500  # ms point of late release miss window
+
+            notelock              = True
+            dynamic_window        = False
+            blank_miss            = False
+            lazy_sliders          = False
+            overlap_miss_handling = False
+            overlap_hit_handling  = False
+
+            self.__is_frozen = True
 
 
     @staticmethod
@@ -97,7 +163,7 @@ class ManiaScoreData():
             if not is_single_note:
                 column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx + 1], ManiaScoreData.TYPE_MISSR, map_idx + 1 ])
             return 2  # Advance to next note
-        
+
         # Hit range
         is_in_hit_range = -ManiaScoreData.neg_hit_range < time_offset <= ManiaScoreData.pos_hit_range
         if is_in_hit_range:
@@ -105,7 +171,7 @@ class ManiaScoreData():
 
             # Go to next note if it's a single or releases don't matter
             return 2 if is_single_note or ManiaScoreData.lazy_sliders else 1
-            
+
         # Late miss tap
         is_in_pos_miss_range = ManiaScoreData.pos_hit_range < time_offset <= ManiaScoreData.pos_hit_miss_range
         if is_in_pos_miss_range:
@@ -149,13 +215,13 @@ class ManiaScoreData():
         if is_in_neg_miss_range:
             column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_MISSR, map_idx ])
             return 1  # Advance to next note
-        
+
         # Hit range
         is_in_hit_range = -ManiaScoreData.neg_rel_range < time_offset <= ManiaScoreData.pos_rel_range
         if is_in_hit_range:
             column_data[len(column_data)] = np.asarray([ replay_time, map_times[map_idx], ManiaScoreData.TYPE_HITR, map_idx ])
             return 1  # Advance to next note
-            
+
         # Late miss tap
         is_in_pos_miss_range = ManiaScoreData.pos_rel_range < time_offset <= ManiaScoreData.pos_rel_miss_range
         if is_in_pos_miss_range:
@@ -251,7 +317,7 @@ class ManiaScoreData():
             replay_col[replay_idx_max:, IDX_TIME] = replay_data[replay_col_filter][:, ManiaActionData.IDX_ETIME]
             replay_col[:replay_idx_max, IDX_TYPE] = ManiaActionData.PRESS
             replay_col[replay_idx_max:, IDX_TYPE] = ManiaActionData.RELEASE
-            
+
             replay_sort = replay_col.argsort(axis=0)
             replay_col = replay_col[replay_sort[:, IDX_TIME]]
 
@@ -306,14 +372,14 @@ class ManiaScoreData():
                     note_type = map_col[map_idx, IDX_TYPE] if map_idx < map_idx_max else ManiaActionData.FREE
 
                     replay_idx += 1
-                    continue                        
+                    continue
 
-                # If we are here then it's a HOLD or FREE. If we are at end of the replay, 
+                # If we are here then it's a HOLD or FREE. If we are at end of the replay,
                 # go through the rest of the notes. Otherwise ignore.
                 replay_idx += 1
                 if replay_idx > replay_idx_max:
                     map_idx += 1
-                    
+
                 continue
 
             # Sort data by timings
@@ -330,7 +396,7 @@ class ManiaScoreData():
     @staticmethod
     def filter_by_hit_type(score_data, hit_types, invert=False):
         if type(hit_types) != list: hit_types = [ hit_types ]
-        
+
         mask = score_data['type'] == hit_types[0]
         if len(hit_types) > 1:
             for hit_type in hit_types[1:]:
@@ -343,7 +409,7 @@ class ManiaScoreData():
     def press_interval_mean(score_data):
         # TODO need to put in release offset into score_data
         # TODO need to go through hitobjects and filter out hold notes
-        #  
+        #
         pass
 
 
@@ -383,7 +449,7 @@ class ManiaScoreData():
         is within the specified offset
 
         Returns: probability one random value [X] is between -offset <= X <= offset
-                 TL;DR: look at all the hits for scores; What are the odds of you picking 
+                 TL;DR: look at all the hits for scores; What are the odds of you picking
                         a random hit that is between -offset and offset?
         """
         mean  = ManiaScoreData.tap_offset_mean(score_data)
@@ -393,7 +459,7 @@ class ManiaScoreData():
 
 
     @staticmethod
-    def odds_all_tap_within(score_data, offset):    
+    def odds_all_tap_within(score_data, offset):
         """
         Creates a gaussian distribution model using avg and var of tap offsets and calculates the odds that all hits
         are within the specified offset
@@ -404,7 +470,7 @@ class ManiaScoreData():
         score_data = ManiaScoreData.filter_by_hit_type(score_data, [ManiaScoreData.TYPE_EMPTY], invert=True)
         return ManiaScoreData.odds_some_tap_within(score_data, offset)**len(score_data)
 
-    
+
     @staticmethod
     def odds_all_tap_within_trials(score_data, offset, trials):
         """
