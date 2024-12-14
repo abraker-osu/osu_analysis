@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 
 from beatmap_reader import BeatmapIO
-from osu_analysis.std.map_data import StdMapData
+from src.std.map_data import StdMapData
 
 
 
@@ -11,8 +11,8 @@ class TestStdMapData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\osu\\test\\abraker - unknown (abraker) [250ms].osu')
-       
-        map_data = [ 
+
+        map_data = [
             pd.DataFrame(
             [
                 [ 100, 0, 0, StdMapData.TYPE_PRESS, StdMapData.TYPE_SLIDER ],
@@ -22,13 +22,13 @@ class TestStdMapData(unittest.TestCase):
             ],
             columns=['time', 'x', 'y', 'type', 'object']),
             pd.DataFrame(
-            [ 
+            [
                 [ 1100, 0, 0, StdMapData.TYPE_PRESS, StdMapData.TYPE_CIRCLE ],
                 [ 1101, 0, 0, StdMapData.TYPE_RELEASE, StdMapData.TYPE_CIRCLE ],
             ],
             columns=['time', 'x', 'y', 'type', 'object']),
             pd.DataFrame(
-            [ 
+            [
                 [ 2100, 0, 0, StdMapData.TYPE_PRESS, StdMapData.TYPE_CIRCLE ],
                 [ 2101, 0, 0, StdMapData.TYPE_RELEASE, StdMapData.TYPE_CIRCLE ],
             ],
@@ -38,7 +38,7 @@ class TestStdMapData(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 
@@ -119,7 +119,7 @@ class TestStdMapData(unittest.TestCase):
         # Time: After last hitobject
         scorepoint_data = StdMapData.get_scorepoint_after(self.map_data, 2200)
         self.assertEqual(scorepoint_data, None)
-        
+
 
     '''
     def test_get_next_hitobject_idx(self):

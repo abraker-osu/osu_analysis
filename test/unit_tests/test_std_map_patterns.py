@@ -2,8 +2,8 @@ import unittest
 
 from beatmap_reader import BeatmapIO
 
-from osu_analysis.std.map_data import StdMapData
-from osu_analysis.std.map_patterns import StdMapPatterns
+from src.std.map_data import StdMapData
+from src.std.map_patterns import StdMapPatterns
 
 
 
@@ -16,7 +16,7 @@ class TestStdMapPatterns(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 

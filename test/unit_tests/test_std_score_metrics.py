@@ -3,10 +3,10 @@ import unittest
 from osu.local.beatmap.beatmapIO import BeatmapIO
 from osu.local.replay.replayIO import ReplayIO
 
-from osu_analysis.osu.std.map_data import StdMapData
-from osu_analysis.osu.std.replay_data import StdReplayData
-from osu_analysis.osu.std.score_data import StdScoreData
-from osu_analysis.osu.std.score_metrics import StdScoreMetrics
+from src.osu.std.map_data import StdMapData
+from src.osu.std.replay_data import StdReplayData
+from src.osu.std.score_data import StdScoreData
+from src.osu.std.score_metrics import StdScoreMetrics
 
 
 
@@ -18,7 +18,7 @@ class TestStdScoreMetrics(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 

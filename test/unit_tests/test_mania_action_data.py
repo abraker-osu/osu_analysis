@@ -4,7 +4,7 @@ import numpy as np
 from beatmap_reader import BeatmapIO
 from replay_reader import ReplayIO
 
-from osu_analysis.mania.action_data import ManiaActionData
+from src.mania.action_data import ManiaActionData
 
 
 
@@ -16,7 +16,7 @@ class TestManiaActionData(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 
@@ -45,7 +45,7 @@ class TestManiaActionData(unittest.TestCase):
             action_data = ManiaActionData.get_action_data(beatmap)
             self.assertEqual(ManiaActionData.num_keys(action_data), keys, 'Calculated wrong number of keys')
 
-        for key in [ 1, 2, 3, 4, 5, 6, 7 ]: 
+        for key in [ 1, 2, 3, 4, 5, 6, 7 ]:
             test_keys(key)
 
 

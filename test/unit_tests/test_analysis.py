@@ -1,6 +1,6 @@
 import unittest
 
-from osu_analysis.mania.action_data import ManiaActionData
+from src.mania.action_data import ManiaActionData
 
 from beatmap_reader import BeatmapIO
 from replay_reader import ReplayIO
@@ -20,5 +20,5 @@ class TestAnalysis(unittest.TestCase):
         replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\abraker - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2020-04-25) OsuMania.osr')
         action_data = ManiaActionData.get_action_data(replay)
 
-        
+
         #print(action_data.action_data)

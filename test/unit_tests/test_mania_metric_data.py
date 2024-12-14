@@ -2,8 +2,8 @@ import unittest
 import numpy as np
 
 from beatmap_reader import BeatmapIO
-from osu_analysis.mania.action_data import ManiaActionData
-from osu_analysis.mania.map_metrics import ManiaMapMetrics
+from src.mania.action_data import ManiaActionData
+from src.mania.map_metrics import ManiaMapMetrics
 
 
 
@@ -15,7 +15,7 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 
@@ -53,7 +53,7 @@ class TestManiaMetricData(unittest.TestCase):
         mask = ManiaMapMetrics.detect_presses_during_holds(action_data)
         self.assertTrue(np.all(mask == 0))
 
-        # Two long notes that are pressed and released at mutually exclusive times, 
+        # Two long notes that are pressed and released at mutually exclusive times,
         # but press of one happens when the other is released
         action_data = np.asarray([
             [ 100, 200, 0 ],
@@ -128,7 +128,7 @@ class TestManiaMetricData(unittest.TestCase):
         mask = ManiaMapMetrics.detect_holds_during_release(action_data)
         self.assertTrue(np.all(mask == 0))
 
-        # Two long notes that are pressed and released at mutually exclusive times, 
+        # Two long notes that are pressed and released at mutually exclusive times,
         # but press of one happens when the other is released
         action_data = np.asarray([
             [ 100, 200, 0 ],
@@ -203,7 +203,7 @@ class TestManiaMetricData(unittest.TestCase):
         mask = ManiaMapMetrics.detect_simultaneous_notes(action_data)
         self.assertTrue(np.all(mask == 0))
 
-        # Two long notes that are pressed and released at mutually exclusive times, 
+        # Two long notes that are pressed and released at mutually exclusive times,
         # but press of one happens when the other is released
         action_data = np.asarray([
             [ 100, 200, 0 ],
@@ -245,7 +245,7 @@ class TestManiaMetricData(unittest.TestCase):
         # TODO: test functionality
         anti_press_durations = ManiaMapMetrics.anti_press_durations(action_data)
 
-    
+
     def test_detect_inverse(self):
         beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)

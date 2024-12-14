@@ -1,7 +1,7 @@
 import unittest
 
 from replay_reader import ReplayIO
-from osu_analysis.std.replay_data import StdReplayData
+from src.std.replay_data import StdReplayData
 
 
 
@@ -13,7 +13,7 @@ class TestStdReplayData(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 
@@ -43,7 +43,7 @@ class TestStdReplayData(unittest.TestCase):
 
         self.assertEqual(len(release_times), 11)
 
-    
+
     def test_get_key_state(self):
         # Shorthand
         FREE    = StdReplayData.FREE
@@ -111,7 +111,7 @@ class TestStdReplayData(unittest.TestCase):
         key_state = StdReplayData._StdReplayData__get_key_state(HOLD, [ RELEASE, FREE, FREE, FREE ], press_block=False, release_block=False)
         self.assertEqual(key_state, RELEASE)
 
-        # hold -> one release (blocking)      
+        # hold -> one release (blocking)
         key_state = StdReplayData._StdReplayData__get_key_state(HOLD, [ RELEASE, FREE, FREE, FREE ], press_block=False, release_block=True)
         self.assertEqual(key_state, RELEASE)
 
@@ -143,7 +143,7 @@ class TestStdReplayData(unittest.TestCase):
         key_state = StdReplayData._StdReplayData__get_key_state(HOLD, [ PRESS, RELEASE, FREE, FREE ], press_block=True, release_block=True)
         self.assertEqual(key_state, RELEASE)
 
-        # hold -> one hold, one release (non blocking)        
+        # hold -> one hold, one release (non blocking)
         key_state = StdReplayData._StdReplayData__get_key_state(HOLD, [ HOLD, RELEASE, FREE, FREE ], press_block=False, release_block=False)
         self.assertEqual(key_state, RELEASE)
 
@@ -151,11 +151,11 @@ class TestStdReplayData(unittest.TestCase):
         key_state = StdReplayData._StdReplayData__get_key_state(HOLD, [ HOLD, RELEASE, FREE, FREE ], press_block=False, release_block=True)
         self.assertEqual(key_state, HOLD)
 
-        # hold -> release, hold (blocking)      
+        # hold -> release, hold (blocking)
         key_state = StdReplayData._StdReplayData__get_key_state(HOLD, [ RELEASE, HOLD, FREE, FREE ], press_block=False, release_block=True)
         self.assertEqual(key_state, HOLD)
 
-        # hold -> release, hold (not blocking)      
+        # hold -> release, hold (not blocking)
         key_state = StdReplayData._StdReplayData__get_key_state(HOLD, [ RELEASE, HOLD, FREE, FREE ], press_block=False, release_block=False)
         self.assertEqual(key_state, RELEASE)
 

@@ -5,17 +5,17 @@ import pandas as pd
 from beatmap_reader import BeatmapIO
 from replay_reader import ReplayIO
 
-from osu_analysis.std.map_data import StdMapData
-from osu_analysis.std.replay_data import StdReplayData
-from osu_analysis.std.score_data import StdScoreData
+from src.std.map_data import StdMapData
+from src.std.replay_data import StdReplayData
+from src.std.score_data import StdScoreData
 
 
 
 class TestStdScoreData(unittest.TestCase):
 
     @classmethod
-    def setUpClass(cls):       
-        map_data = [ 
+    def setUpClass(cls):
+        map_data = [
             pd.DataFrame(
             [
                 [ 100, 0,   0, StdMapData.TYPE_PRESS, StdMapData.TYPE_SLIDER ],
@@ -25,13 +25,13 @@ class TestStdScoreData(unittest.TestCase):
             ],
             columns=['time', 'x', 'y', 'type', 'object']),
             pd.DataFrame(
-            [ 
+            [
                 [ 1000, 500, 500, StdMapData.TYPE_PRESS, StdMapData.TYPE_CIRCLE ],
                 [ 1001, 500, 500, StdMapData.TYPE_RELEASE, StdMapData.TYPE_CIRCLE ],
             ],
             columns=['time', 'x', 'y', 'type', 'object']),
             pd.DataFrame(
-            [ 
+            [
                 [ 2000, 300, 300, StdMapData.TYPE_PRESS, StdMapData.TYPE_CIRCLE ],
                 [ 2001, 300, 300, StdMapData.TYPE_RELEASE, StdMapData.TYPE_CIRCLE ],
             ],
@@ -41,7 +41,7 @@ class TestStdScoreData(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 
@@ -56,7 +56,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 0)
 
         # Time:        Before start
-        # Hitobject:   Slider 
+        # Hitobject:   Slider
         # Advancement: Aimpoint
         adv = StdScoreData._StdScoreData__ADV_AIMP
         new_map_time = StdScoreData._StdScoreData__adv(self.map_data, map_time, adv)
@@ -79,7 +79,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 100)
 
         # Time:        At first aimpoint
-        # Hitobject:   Slider 
+        # Hitobject:   Slider
         # Advancement: Aimpoint
         adv = StdScoreData._StdScoreData__ADV_AIMP
         new_map_time = StdScoreData._StdScoreData__adv(self.map_data, map_time, adv)
@@ -102,7 +102,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 350)
 
         # Time:        At second aimpoint
-        # Hitobject:   Slider 
+        # Hitobject:   Slider
         # Advancement: Aimpoint
         adv = StdScoreData._StdScoreData__ADV_AIMP
         new_map_time = StdScoreData._StdScoreData__adv(self.map_data, map_time, adv)
@@ -125,7 +125,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 750)
 
         # Time:        At slider release
-        # Hitobject:   Slider 
+        # Hitobject:   Slider
         # Advancement: Aimpoint
         adv = StdScoreData._StdScoreData__ADV_AIMP
         new_map_time = StdScoreData._StdScoreData__adv(self.map_data, map_time, adv)
@@ -148,7 +148,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 1000)
 
         # Time:        At 2nd hitobject
-        # Hitobject:   Circle 
+        # Hitobject:   Circle
         # Advancement: Aimpoint
         adv = StdScoreData._StdScoreData__ADV_AIMP
         new_map_time = StdScoreData._StdScoreData__adv(self.map_data, map_time, adv)
@@ -171,7 +171,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 2000)
 
         # Time:        At last hitobject
-        # Hitobject:   Circle 
+        # Hitobject:   Circle
         # Advancement: Aimpoint
         adv = StdScoreData._StdScoreData__ADV_AIMP
         new_map_time = StdScoreData._StdScoreData__adv(self.map_data, map_time, adv)
@@ -194,7 +194,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 2001)
 
         # Time:        At last hitobject
-        # Hitobject:   Circle 
+        # Hitobject:   Circle
         # Advancement: Aimpoint
         adv = StdScoreData._StdScoreData__ADV_AIMP
         new_map_time = StdScoreData._StdScoreData__adv(self.map_data, map_time, adv)
@@ -217,7 +217,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertEqual(new_map_time, 3000)
 
         # Time:        After last hitobject
-        # Hitobject:   Circle 
+        # Hitobject:   Circle
         # Advancement: Aimpoint
         adv = StdScoreData._StdScoreData__ADV_AIMP
         new_map_time = StdScoreData._StdScoreData__adv(self.map_data, map_time, adv)
@@ -251,7 +251,7 @@ class TestStdScoreData(unittest.TestCase):
         self.assertTrue(not any(score_data['type'] == StdScoreData.TYPE_MISS))
         self.assertTrue(all(abs(offsets) <= 50))
 
-        
+
     def test_relax_map(self):
         settings = StdScoreData.Settings()
         settings.neg_hit_miss_range = 100   # ms point of early miss window

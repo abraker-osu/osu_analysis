@@ -4,8 +4,8 @@ import numpy as np
 from beatmap_reader import BeatmapIO
 from replay_reader import ReplayIO
 
-from osu_analysis.mania.action_data import ManiaActionData
-from osu_analysis.mania.score_data import ManiaScoreData
+from src.mania.action_data import ManiaActionData
+from src.mania.score_data import ManiaScoreData
 
 
 
@@ -32,10 +32,10 @@ class TestManiaScoreData(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
-    
+
     def test_perfect_score(self):
         beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
         replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
@@ -123,37 +123,37 @@ class TestManiaScoreData(unittest.TestCase):
                 )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr',
             'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr',
             press_release=1
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr',
             'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr',
             press_release=0
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr',
             'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
             press_release=1
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
+            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr',
             'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
             press_release=0
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr', 
+            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr',
             'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania.osr',
             press_release=1
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr', 
+            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr',
             'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania.osr',
             press_release=0
         )
