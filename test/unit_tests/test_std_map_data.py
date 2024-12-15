@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 
 from beatmap_reader import BeatmapIO
-from src.std.map_data import StdMapData
+from osu_analysis import StdMapData
 
 
 

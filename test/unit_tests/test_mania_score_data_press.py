@@ -1,9 +1,8 @@
 import unittest
 import numpy as np
 
-from src.mania.action_data import ManiaActionData
-from src.mania.score_data import ManiaScoreData
-
+from osu_analysis import ManiaActionData
+from osu_analysis import ManiaScoreData
 
 
 class TestManiaScoreDataPress(unittest.TestCase):

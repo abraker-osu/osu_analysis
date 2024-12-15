@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 
 from beatmap_reader import BeatmapIO
-from replay_reader import ReplayIO
+from replay_reader  import ReplayIO
 
-from src.std.map_data import StdMapData
-from src.std.replay_data import StdReplayData
-from src.std.score_data import StdScoreData
+from osu_analysis import StdMapData
+from osu_analysis import StdReplayData
+from osu_analysis import StdScoreData
 
 
 

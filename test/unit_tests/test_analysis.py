@@ -1,9 +1,9 @@
 import unittest
 
-from src.mania.action_data import ManiaActionData
-
 from beatmap_reader import BeatmapIO
-from replay_reader import ReplayIO
+from replay_reader  import ReplayIO
+
+from osu_analysis import ManiaActionData
 
 
 class TestAnalysis(unittest.TestCase):

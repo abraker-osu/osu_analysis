@@ -1,7 +1,7 @@
 import unittest
 
 from replay_reader import ReplayIO
-from src.std.replay_data import StdReplayData
+from osu_analysis import StdReplayData
 
 
 

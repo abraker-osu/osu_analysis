@@ -1,8 +1,8 @@
 import unittest
 import pandas as pd
 
-from src.std.map_data import StdMapData
-from src.std.score_data import StdScoreData
+from osu_analysis import StdMapData
+from osu_analysis import StdScoreData
 
 
 

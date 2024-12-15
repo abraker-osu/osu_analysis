@@ -2,9 +2,8 @@ import unittest
 import numpy as np
 
 from beatmap_reader import BeatmapIO
-from replay_reader import ReplayIO
 
-from src.mania.action_data import ManiaActionData
+from osu_analysis import ManiaActionData
 
 
 
