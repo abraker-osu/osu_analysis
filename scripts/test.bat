@@ -11,6 +11,6 @@ if "%VIRTUAL_ENV%" == "" (
     EXIT /B 1
 )
 
-python test\run.py
+python tests\run.py
 
 echo [ DONE ]

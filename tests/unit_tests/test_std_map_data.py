@@ -10,7 +10,7 @@ class TestStdMapData(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\osu\\test\\abraker - unknown (abraker) [250ms].osu')
+        cls.beatmap = BeatmapIO.open_beatmap('tests/data/maps/osu/test/abraker - unknown (abraker) [250ms].osu')
 
         map_data = [
             pd.DataFrame(
@@ -123,7 +123,7 @@ class TestStdMapData(unittest.TestCase):
 
     '''
     def test_get_next_hitobject_idx(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\osu\\playable\\Within Temptation - The Unforgiving (Armin) [Marathon].osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/osu/playable/Within Temptation - The Unforgiving (Armin) [Marathon].osu')
         map_data = StdMapData.get_map_data(beatmap.hitobjects)
 
         idx = -1

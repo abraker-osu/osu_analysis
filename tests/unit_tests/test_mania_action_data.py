@@ -27,20 +27,20 @@ class TestManiaActionData(unittest.TestCase):
             dt = np.diff(map_data[:, ManiaActionData.IDX_STIME])
             self.assertTrue(all(dt >= 0), 'Map data is not order by note starting times')
 
-        test_map('unit_tests\\maps\\mania\\test\\1k_10x_0.25_chords.osu')
-        test_map('unit_tests\\maps\\mania\\test\\2k_10x_0.25_chords.osu')
-        test_map('unit_tests\\maps\\mania\\test\\3k_10x_0.25_chords.osu')
-        test_map('unit_tests\\maps\\mania\\test\\4k_10x_0.25_chords.osu')
-        test_map('unit_tests\\maps\\mania\\test\\5k_10x_0.25_chords.osu')
-        test_map('unit_tests\\maps\\mania\\test\\7k_10x_0.25_chords.osu')
-        test_map('unit_tests\\maps\\mania\\test\\8k_mixed_timing_jacks.osu')
-        test_map('unit_tests\\maps\\mania\\test\\14k_test.osu')
-        test_map('unit_tests\\maps\\mania\\test\\18k_test.osu')
+        test_map('tests/data/maps/mania/test/1k_10x_0.25_chords.osu')
+        test_map('tests/data/maps/mania/test/2k_10x_0.25_chords.osu')
+        test_map('tests/data/maps/mania/test/3k_10x_0.25_chords.osu')
+        test_map('tests/data/maps/mania/test/4k_10x_0.25_chords.osu')
+        test_map('tests/data/maps/mania/test/5k_10x_0.25_chords.osu')
+        test_map('tests/data/maps/mania/test/7k_10x_0.25_chords.osu')
+        test_map('tests/data/maps/mania/test/8k_mixed_timing_jacks.osu')
+        test_map('tests/data/maps/mania/test/14k_test.osu')
+        test_map('tests/data/maps/mania/test/18k_test.osu')
 
 
     def test_num_keys(self):
         def test_keys(keys):
-            beatmap = BeatmapIO.open_beatmap(f'unit_tests\\maps\\mania\\test\\{keys}k_10x_0.25_chords.osu')
+            beatmap = BeatmapIO.open_beatmap(f'tests/data/maps/mania/test/{keys}k_10x_0.25_chords.osu')
             action_data = ManiaActionData.get_action_data(beatmap)
             self.assertEqual(ManiaActionData.num_keys(action_data), keys, 'Calculated wrong number of keys')
 
@@ -50,7 +50,7 @@ class TestManiaActionData(unittest.TestCase):
 
     def test_press_times(self):
         # This map has notes every 250ms
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\1k_10x_0.25_chords.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/1k_10x_0.25_chords.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # Notes occur every 500 ms
@@ -61,7 +61,7 @@ class TestManiaActionData(unittest.TestCase):
 
     def test_release_times(self):
         # This map has notes every 250ms
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\1k_10x_0.25_chords.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/1k_10x_0.25_chords.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # Notes occur every 500 ms + 1 ms for release
@@ -72,7 +72,7 @@ class TestManiaActionData(unittest.TestCase):
 
     def test_split_by_hand(self):
         def test_keys(keys, lh, rh):
-            beatmap = BeatmapIO.open_beatmap(f'unit_tests\\maps\\mania\\test\\{keys}k_10x_0.25_chords.osu')
+            beatmap = BeatmapIO.open_beatmap(f'tests/data/maps/mania/test/{keys}k_10x_0.25_chords.osu')
             action_data = ManiaActionData.get_action_data(beatmap)
 
             left_hand, right_hand = ManiaActionData.split_by_hand(action_data, left_handed=True)
@@ -94,7 +94,7 @@ class TestManiaActionData(unittest.TestCase):
 
 
     def test_get_actions_between(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\8k_mixed_timing_jacks.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/8k_mixed_timing_jacks.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality
@@ -102,7 +102,7 @@ class TestManiaActionData(unittest.TestCase):
 
 
     def test_get_idx_sort(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\8k_mixed_timing_jacks.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/8k_mixed_timing_jacks.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality

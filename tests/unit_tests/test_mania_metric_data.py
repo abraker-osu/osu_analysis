@@ -20,7 +20,7 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     def test_calc_press_rate(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality
@@ -28,7 +28,7 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     def test_calc_note_intervals(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality
@@ -36,7 +36,7 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     def test_max_press_rate_per_col(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality
@@ -109,11 +109,11 @@ class TestManiaMetricData(unittest.TestCase):
         self.assertFalse(np.all(mask == 0))
 
         # Crash test
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
         mask = ManiaMapMetrics.detect_presses_during_holds(action_data)
 
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
         action_data = ManiaActionData.get_action_data(beatmap)
         mask = ManiaMapMetrics.detect_presses_during_holds(action_data)
 
@@ -184,11 +184,11 @@ class TestManiaMetricData(unittest.TestCase):
         self.assertFalse(np.all(mask == 0))
 
         # Crash test
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
         mask = ManiaMapMetrics.detect_holds_during_release(action_data)
 
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
         action_data = ManiaActionData.get_action_data(beatmap)
         mask = ManiaMapMetrics.detect_holds_during_release(action_data)
 
@@ -224,13 +224,13 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     def test_detect_hold_notes(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         mask = ManiaMapMetrics.detect_hold_notes(action_data)
         self.assertTrue(np.all(mask == 0))
 
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality more thourouly
@@ -239,7 +239,7 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     def test_data_to_anti_press_durations(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality
@@ -247,19 +247,19 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     def test_detect_inverse(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         inverse_mask = ManiaMapMetrics.detect_inverse(action_data)
         self.assertTrue(np.all(inverse_mask == 0))
 
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\inverse_test.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/inverse_test.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         inverse_mask = ManiaMapMetrics.detect_inverse(action_data)
         self.assertFalse(np.all(inverse_mask == 0))
 
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\sr_testing\\high_sr_low_diff_norm_hp\\3L - Endless Night x1.25 (Skorer) [Endless Longs Notes !!].osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/sr_testing/high_sr_low_diff_norm_hp/3L - Endless Night x1.25 (Skorer) [Endless Longs Notes !!].osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         inverse_mask = ManiaMapMetrics.detect_inverse(action_data)
@@ -338,7 +338,7 @@ class TestManiaMetricData(unittest.TestCase):
         mask = ManiaMapMetrics.detect_chords(action_data)
         self.assertTrue(np.all((mask == [0, 0, 0, 0, 0, 0]) == 1))
 
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality
@@ -347,14 +347,14 @@ class TestManiaMetricData(unittest.TestCase):
 
     '''
     def test_data_to_press_durations(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality
         press_intervals = ManiaMapMetrics.press_durations(action_data)
         print(press_intervals)
 
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality more thourouly
@@ -365,7 +365,7 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     def test_data_to_hold_durations(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality
@@ -373,7 +373,7 @@ class TestManiaMetricData(unittest.TestCase):
 
 
     def test_detect_jacks(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\test\\chords_250ms.osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/test/chords_250ms.osu')
         action_data = ManiaActionData.get_action_data(beatmap)
 
         # TODO: test functionality

@@ -11,7 +11,7 @@ class TestStdMapPatterns(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\osu\\test\\abraker - unknown (abraker) [250ms].osu')
+        cls.beatmap = BeatmapIO.open_beatmap('tests/data/maps/osu/test/abraker - unknown (abraker) [250ms].osu')
         cls.map_data = StdMapData.get_map_data(cls.beatmap)
 
 

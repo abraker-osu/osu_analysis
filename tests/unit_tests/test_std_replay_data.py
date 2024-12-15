@@ -18,18 +18,18 @@ class TestStdReplayData(unittest.TestCase):
 
 
     def test_get_replay_data(self):
-        replay = ReplayIO.open_replay('unit_tests/replays/osu/LeaF - I (Maddy) [Terror] replay_0.osr')
+        replay = ReplayIO.open_replay('tests/data/replays/osu/LeaF - I (Maddy) [Terror] replay_0.osr')
         replay_data = StdReplayData.get_replay_data(replay)
 
-        replay = ReplayIO.open_replay('unit_tests/replays/osu/osu! - perfect_test [score_test] (2019-06-07) Osu.osr')
+        replay = ReplayIO.open_replay('tests/data/replays/osu/osu! - perfect_test [score_test] (2019-06-07) Osu.osr')
         replay_data = StdReplayData.get_replay_data(replay)
 
-        replay = ReplayIO.open_replay('unit_tests/replays/osu/Toy - Within Temptation - The Unforgiving [Marathon] (2018-02-06) Osu.osr')
+        replay = ReplayIO.open_replay('tests/data/replays/osu/Toy - Within Temptation - The Unforgiving [Marathon] (2018-02-06) Osu.osr')
         replay_data = StdReplayData.get_replay_data(replay)
 
 
     def test_press_times(self):
-        replay = ReplayIO.open_replay('unit_tests/replays/osu/osu! - perfect_test [score_test] (2019-06-07) Osu.osr')
+        replay = ReplayIO.open_replay('tests/data/replays/osu/osu! - perfect_test [score_test] (2019-06-07) Osu.osr')
         replay_data = StdReplayData.get_replay_data(replay)
         press_times = StdReplayData.press_times(replay_data)
 
@@ -37,7 +37,7 @@ class TestStdReplayData(unittest.TestCase):
 
 
     def test_release_times(self):
-        replay = ReplayIO.open_replay('unit_tests/replays/osu/osu! - perfect_test [score_test] (2019-06-07) Osu.osr')
+        replay = ReplayIO.open_replay('tests/data/replays/osu/osu! - perfect_test [score_test] (2019-06-07) Osu.osr')
         replay_data = StdReplayData.get_replay_data(replay)
         release_times = StdReplayData.release_times(replay_data)
 
