@@ -11,6 +11,6 @@ if "%VIRTUAL_ENV%" == "" (
     EXIT /B 1
 )
 
-python demos\\demo3.py
+python demos\\demo4.py
 
 echo [ DONE ]

@@ -1,5 +1,7 @@
 """
 Map analysis demo
+
+NOTE: If changes were made, run refresh.bat to apply replay_reader changes to venv
 """
 from beatmap_reader import BeatmapIO
 from osu_analysis import StdMapData

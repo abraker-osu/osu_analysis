@@ -1,4 +1,0 @@
-[submodule "replay_reader"]
-	path = replay_reader
-	url = https://github.com/abraker-osu/osu_replay_reader.git
-	branch = master

@@ -18,6 +18,11 @@
             "type":    "shell"
         },
         {
+            "label":   "Refresh",
+            "command": "scripts\\refresh.bat",
+            "type":    "shell"
+        },
+        {
             "label":   "Clean",
             "command": "scripts\\clean.bat",
             "type":    "shell",
