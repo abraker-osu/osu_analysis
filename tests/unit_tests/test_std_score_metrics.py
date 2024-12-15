@@ -1,12 +1,12 @@
 import unittest
 
-from osu.local.beatmap.beatmapIO import BeatmapIO
-from osu.local.replay.replayIO import ReplayIO
+from beatmap_reader import BeatmapIO
+from replay_reader  import ReplayIO
 
-from osu_analysis.osu.std.map_data import StdMapData
-from osu_analysis.osu.std.replay_data import StdReplayData
-from osu_analysis.osu.std.score_data import StdScoreData
-from osu_analysis.osu.std.score_metrics import StdScoreMetrics
+from osu_analysis import StdMapData
+from osu_analysis import StdReplayData
+from osu_analysis import StdScoreData
+from osu_analysis import StdScoreMetrics
 
 
 
@@ -14,11 +14,11 @@ class TestStdScoreMetrics(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\osu\\test\\abraker - unknown (abraker) [250ms].osu')
+        cls.beatmap = BeatmapIO.open_beatmap('tests/data/maps/osu/test/abraker - unknown (abraker) [250ms].osu')
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 

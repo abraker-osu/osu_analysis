@@ -2,10 +2,10 @@ import unittest
 import numpy as np
 
 from beatmap_reader import BeatmapIO
-from replay_reader import ReplayIO
+from replay_reader  import ReplayIO
 
-from osu_analysis.mania.action_data import ManiaActionData
-from osu_analysis.mania.score_data import ManiaScoreData
+from osu_analysis import ManiaActionData
+from osu_analysis import ManiaScoreData
 
 
 
@@ -32,13 +32,13 @@ class TestManiaScoreData(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
-    
+
     def test_perfect_score(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
-        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        replay = ReplayIO.open_replay('tests/data/replays/mania/osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
 
         map_data = ManiaActionData.get_action_data(beatmap)
         replay_data = ManiaActionData.get_action_data(replay)
@@ -57,8 +57,8 @@ class TestManiaScoreData(unittest.TestCase):
 
     def test_scoring_completeness(self):
         # Check if the score processor went through and recorded all of the timings
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\Various Artists - I Like This Chart, LOL vol. 2 (Fullereneshift) [LENK64 - Crazy Slav Dancers (HD) (Marathon)].osu')
-        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\abraker - Various Artists - I Like This Chart, LOL vol. 2 [LENK64 - Crazy Slav Dancers (HD) (Marathon)] (2021-07-10) OsuMania.osr')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/Various Artists - I Like This Chart, LOL vol. 2 (Fullereneshift) [LENK64 - Crazy Slav Dancers (HD) (Marathon)].osu')
+        replay = ReplayIO.open_replay('tests/data/replays/mania/abraker - Various Artists - I Like This Chart, LOL vol. 2 [LENK64 - Crazy Slav Dancers (HD) (Marathon)] (2021-07-10) OsuMania.osr')
 
         map_data = ManiaActionData.get_action_data(beatmap)
         replay_data = ManiaActionData.get_action_data(replay)
@@ -71,7 +71,7 @@ class TestManiaScoreData(unittest.TestCase):
 
     def test_scoring_integrity(self):
         # The number of hits + misses should match for all same maps
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\Goreshit - Satori De Pon! (SReisen) [Star Burst 2!].osu')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/Goreshit - Satori De Pon! (SReisen) [Star Burst 2!].osu')
 
         def test(replay1_filename, replay2_filename, press_release):
             replay1 = ReplayIO.open_replay(replay1_filename)
@@ -111,8 +111,8 @@ class TestManiaScoreData(unittest.TestCase):
                 notes_count2[:np.max(notes_t2)+1] = np.bincount(notes_t2)  # Integer histogram for timings of score 2
                 notes_mismatch = np.arange(max(np.max(notes_t1), np.max(notes_t2)) + 1)[notes_count1 != notes_count2]
 
-                replay1_name = replay1_filename[replay1_filename.rfind("\\") + 1:]
-                replay2_name = replay2_filename[replay2_filename.rfind("\\") + 1:]
+                replay1_name = replay1_filename[replay1_filename.rfind("/") + 1:]
+                replay2_name = replay2_filename[replay2_filename.rfind("/") + 1:]
 
                 self.assertEqual(num_hits1 + num_miss1, num_hits2 + num_miss2,
                     f'\n\tReplays: {replay1_name}    {replay2_name}\n'
@@ -123,38 +123,38 @@ class TestManiaScoreData(unittest.TestCase):
                 )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr',
+            'tests/data/replays/mania/abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr',
+            'tests/data/replays/mania/abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr',
             press_release=1
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr',
+            'tests/data/replays/mania/abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr',
+            'tests/data/replays/mania/abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania-1.osr',
             press_release=0
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
+            'tests/data/replays/mania/abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr',
+            'tests/data/replays/mania/abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
             press_release=1
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr', 
-            'unit_tests\\replays\\mania\\abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
+            'tests/data/replays/mania/abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-24) OsuMania.osr',
+            'tests/data/replays/mania/abraker - Goreshit - Satori De Pon! [Star Burst 2!] (2021-07-31) OsuMania.osr',
             press_release=0
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr', 
-            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania.osr',
+            'tests/data/replays/mania/abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr',
+            'tests/data/replays/mania/abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania.osr',
             press_release=1
         )
 
         test(
-            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr', 
-            'unit_tests\\replays\\mania\\abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania.osr',
+            'tests/data/replays/mania/abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania-1.osr',
+            'tests/data/replays/mania/abraker - Hyadain - Enemy Appearance! [NM] (2021-07-31) OsuMania.osr',
             press_release=0
         )
 
@@ -170,8 +170,8 @@ class TestManiaScoreData(unittest.TestCase):
 
 
     def test_press_interval_mean(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
-        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        replay = ReplayIO.open_replay('tests/data/replays/mania/osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
 
         map_data = ManiaActionData.get_action_data(beatmap)
         replay_data = ManiaActionData.get_action_data(replay)
@@ -182,8 +182,8 @@ class TestManiaScoreData(unittest.TestCase):
 
 
     def test_tap_offset_mean_0(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
-        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        replay = ReplayIO.open_replay('tests/data/replays/mania/osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
 
         map_data = ManiaActionData.get_action_data(beatmap)
         replay_data = ManiaActionData.get_action_data(replay)
@@ -198,8 +198,8 @@ class TestManiaScoreData(unittest.TestCase):
 
 
     def test_tap_offset_mean_100(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
-        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        replay = ReplayIO.open_replay('tests/data/replays/mania/osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
 
         timings = replay.get_time_data()
         timings[0] += 100
@@ -217,8 +217,8 @@ class TestManiaScoreData(unittest.TestCase):
 
 
     def test_tap_offset_mean_max(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
-        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        replay = ReplayIO.open_replay('tests/data/replays/mania/osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
 
         timings = replay.get_time_data()
         timings[0] += ManiaScoreData.pos_hit_range - 1
@@ -236,8 +236,8 @@ class TestManiaScoreData(unittest.TestCase):
 
 
     def test_tap_offset_var(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
-        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        replay = ReplayIO.open_replay('tests/data/replays/mania/osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
 
         map_data = ManiaActionData.get_action_data(beatmap)
         replay_data = ManiaActionData.get_action_data(replay)
@@ -252,8 +252,8 @@ class TestManiaScoreData(unittest.TestCase):
 
 
     def test_tap_offset_stdev(self):
-        beatmap = BeatmapIO.open_beatmap('unit_tests\\maps\\mania\\playable\\DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
-        replay = ReplayIO.open_replay('unit_tests\\replays\\mania\\osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
+        beatmap = BeatmapIO.open_beatmap('tests/data/maps/mania/playable/DJ Genericname - Dear You (Taiwan-NAK) [S.Star\'s 4K HD+].osu')
+        replay = ReplayIO.open_replay('tests/data/replays/mania/osu!topus! - DJ Genericname - Dear You [S.Star\'s 4K HD+] (2019-05-29) OsuMania.osr')
 
         map_data = ManiaActionData.get_action_data(beatmap)
         replay_data = ManiaActionData.get_action_data(replay)

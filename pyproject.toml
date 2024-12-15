@@ -1,0 +1,24 @@
+[build-system]
+requires      = [ "setuptools >= 64", 'setuptools_scm[toml] >=8 ' ]
+build-backend = "setuptools.build_meta"
+
+[project]
+name            = "osu-analysis"
+description     = "Python library for analyzing osu! beatmaps and replays"
+readme          = "README.md"
+requires-python = ">= 3.10"
+dynamic         = [ "version" ]
+
+dependencies = [
+    "numpy >= 1.22.0, < 2.0.0",
+    "pandas >= 2.2.3",
+    "scipy >= 1.14.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/abraker-osu/osu_analysis"
+
+[tool.setuptools.package-dir]
+osu_analysis = "src"
+
+[tool.setuptools_scm]

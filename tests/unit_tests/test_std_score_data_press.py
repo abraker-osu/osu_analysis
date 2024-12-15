@@ -1,8 +1,8 @@
 import unittest
 import pandas as pd
 
-from osu_analysis.std.map_data import StdMapData
-from osu_analysis.std.score_data import StdScoreData
+from osu_analysis import StdMapData
+from osu_analysis import StdScoreData
 
 
 
@@ -10,7 +10,7 @@ class TestStdScoreDataPress(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        map_data = [ 
+        map_data = [
             pd.DataFrame(
             [
                 [ 100, 0,   0, StdMapData.TYPE_PRESS, StdMapData.TYPE_SLIDER ],
@@ -20,13 +20,13 @@ class TestStdScoreDataPress(unittest.TestCase):
             ],
             columns=['time', 'x', 'y', 'type', 'object']),
             pd.DataFrame(
-            [ 
+            [
                 [ 1000, 500, 500, StdMapData.TYPE_PRESS, StdMapData.TYPE_CIRCLE ],
                 [ 1001, 500, 500, StdMapData.TYPE_RELEASE, StdMapData.TYPE_CIRCLE ],
             ],
             columns=['time', 'x', 'y', 'type', 'object']),
             pd.DataFrame(
-            [ 
+            [
                 [ 2000, 300, 300, StdMapData.TYPE_PRESS, StdMapData.TYPE_CIRCLE ],
                 [ 2001, 300, 300, StdMapData.TYPE_RELEASE, StdMapData.TYPE_CIRCLE ],
             ],
@@ -44,7 +44,7 @@ class TestStdScoreDataPress(unittest.TestCase):
 
 
     @classmethod
-    def tearDown(cls):  
+    def tearDown(cls):
         pass
 
 
@@ -57,7 +57,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         settings.neg_hit_range      = 300    # ms point of early hit window
         settings.pos_hit_miss_range = 450    # ms point of late miss window
         settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
+
         settings.pos_rel_range       = 500   # ms point of late release window
         settings.neg_rel_range       = 500   # ms point of early release window
         settings.pos_rel_miss_range  = 1000  # ms point of late release window
@@ -72,7 +72,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.values, ms, 1000, 1000, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[0]['time']
 
             self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
@@ -88,7 +88,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         settings.neg_hit_range      = 300    # ms point of early hit window
         settings.pos_hit_miss_range = 450    # ms point of late miss window
         settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
+
         settings.pos_rel_range       = 500   # ms point of late release window
         settings.neg_rel_range       = 500   # ms point of early release window
         settings.pos_rel_miss_range  = 1000  # ms point of late release window
@@ -100,7 +100,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.values, ms, 0, 0, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[0]['time']
 
             if offset <= -settings.neg_hit_miss_range:
@@ -136,7 +136,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         settings.neg_hit_range      = 300    # ms point of early hit window
         settings.pos_hit_miss_range = 450    # ms point of late miss window
         settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
+
         settings.pos_rel_range       = 500   # ms point of late release window
         settings.neg_rel_range       = 500   # ms point of early release window
         settings.pos_rel_miss_range  = 1000  # ms point of late release window
@@ -148,7 +148,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[1:].values, ms, 1000, 1000, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[1]['time']
 
             self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
@@ -164,7 +164,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         settings.neg_hit_range      = 300    # ms point of early hit window
         settings.pos_hit_miss_range = 450    # ms point of late miss window
         settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
+
         settings.pos_rel_range       = 500   # ms point of late release window
         settings.neg_rel_range       = 500   # ms point of early release window
         settings.pos_rel_miss_range  = 1000  # ms point of late release window
@@ -176,7 +176,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[1:].values, ms, 100, 0, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[1]['time']
 
             self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
@@ -192,7 +192,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         settings.neg_hit_range      = 300    # ms point of early hit window
         settings.pos_hit_miss_range = 450    # ms point of late miss window
         settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
+
         settings.pos_rel_range       = 500   # ms point of late release window
         settings.neg_rel_range       = 500   # ms point of early release window
         settings.pos_rel_miss_range  = 1000  # ms point of late release window
@@ -204,7 +204,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:].values, ms, 1000, 1000, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[4]['time']
 
             self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
@@ -226,7 +226,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:].values, ms, 500, 500, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[4]['time']
 
             if offset <= -settings.neg_hit_miss_range:
@@ -257,13 +257,13 @@ class TestStdScoreDataPress(unittest.TestCase):
     def test_circle_press_missaim__blank(self):
         settings = StdScoreData.Settings()
         settings.blank_miss = True
-        
+
         # Set hitwindow ranges to what these tests have been written for
         settings.pos_hit_range      = 300    # ms point of late hit window
         settings.neg_hit_range      = 300    # ms point of early hit window
         settings.pos_hit_miss_range = 450    # ms point of late miss window
         settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
+
         settings.pos_rel_range       = 500   # ms point of late release window
         settings.neg_rel_range       = 500   # ms point of early release window
         settings.pos_rel_miss_range  = 1000  # ms point of late release window
@@ -275,7 +275,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:].values, ms, 1000, 1000, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[4]['time']
 
             self.assertEqual(adv, StdScoreData._StdScoreData__ADV_NOP, f'Offset: {offset} ms')
@@ -291,7 +291,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         settings.neg_hit_range      = 300    # ms point of early hit window
         settings.pos_hit_miss_range = 450    # ms point of late miss window
         settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
+
         settings.pos_rel_range       = 500   # ms point of late release window
         settings.neg_rel_range       = 500   # ms point of early release window
         settings.pos_rel_miss_range  = 1000  # ms point of late release window
@@ -303,7 +303,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[4:].values, ms, 500, 500, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[4]['time']
 
             if offset <= -settings.neg_hit_miss_range:
@@ -339,7 +339,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         settings.neg_hit_range      = 300    # ms point of early hit window
         settings.pos_hit_miss_range = 450    # ms point of late miss window
         settings.neg_hit_miss_range = 450    # ms point of early miss window
-    
+
         settings.pos_rel_range       = 500   # ms point of late release window
         settings.neg_rel_range       = 500   # ms point of early release window
         settings.pos_rel_miss_range  = 1000  # ms point of late release window
@@ -352,7 +352,7 @@ class TestStdScoreDataPress(unittest.TestCase):
         for ms in range(-1000, 4000):
             score_data = {}
             adv = StdScoreData._StdScoreData__process_press(settings, score_data, self.map_data.iloc[8:].values, ms, 0, 0, [0, 0])
-            
+
             offset = ms - self.map_data.iloc[8]['time']
 
             if offset <= -settings.neg_hit_miss_range:

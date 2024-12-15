@@ -11,7 +11,14 @@ The osu_analysis package has *almost* everything you need for analyzing osu! bea
 ## Installing
 
 ```
-pip install git+https://github.com/abraker-osu/osu_analysis.git#egg=osu_analysis
+python -m pip install git+https://github.com/abraker-osu/osu_analysis.git#egg=osu_analysis
+```
+
+Add the following to .vscore/settings.json if linting is failing on libraries in venv/src:
+```
+"python.analysis.extraPaths": [
+    "venv\\src",
+]
 ```
 
 ## Basic usage

@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "forbeslindesay.forbeslindesay-taskrunner",
+        "ms-python.pylint",
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+    ]
+}

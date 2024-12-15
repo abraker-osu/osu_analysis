@@ -1,3 +1,3 @@
-numpy
-scipy
-pandas
+-e git+https://github.com/abraker-osu/osu_interfaces.git@main#egg=osu_interfaces
+-e git+https://github.com/abraker-osu/osu_beatmap_reader.git@master#egg=beatmap_reader
+-e git+https://github.com/abraker-osu/osu_replay_reader.git@master#egg=replay_reader
